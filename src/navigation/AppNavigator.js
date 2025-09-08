@@ -1,0 +1,60 @@
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import LandingPage from "../screens/LandingPage";
+import LoginScreen from "../screens/LoginScreen";
+import HomeScreen from "../screens/HomeScreen";
+import DashboardScreen from '../screens/DashboardPage';
+import TabNavigator from './TabNavigator';
+import { useTheme } from '../contexts/ThemeContext';
+import { Ionicons } from '@expo/vector-icons';
+import FuncionarioFormScreen from '../screens/admin/FuncionarioFormScreen';
+import MaquinaFormScreen from '../screens/admin/MaquinaFormScreen';
+import SetorFormScreen from '../screens/admin/SetorFormScreen';
+import DepartamentoFormScreen from '../screens/admin/DepartamentoFormScreen';
+
+const Stack = createStackNavigator();
+
+export default function AppNavigator() {
+  const { colors, isDark, toggleTheme } = useTheme();
+
+  return (
+    <Stack.Navigator
+      initialRouteName="Landing"
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.background,
+        headerTitleStyle: { color: colors.background },
+        headerRight: () => (
+          <Ionicons
+            name={isDark ? 'sunny' : 'moon'}
+            size={22}
+            color={colors.background}
+            style={{ marginRight: 12 }}
+            onPress={toggleTheme}
+          />
+        ),
+      }}
+    >
+      <Stack.Screen
+        name="Landing"
+        component={LandingPage}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen 
+        name="MainTabs" 
+        component={TabNavigator} 
+        options={{ headerShown: false, title: 'Sistema' }}
+      />
+      <Stack.Screen name="FuncionarioCreate" component={FuncionarioFormScreen} options={{ title: 'Novo Funcionário' }} />
+      <Stack.Screen name="FuncionarioEdit" component={FuncionarioFormScreen} options={{ title: 'Editar Funcionário' }} />
+      <Stack.Screen name="MaquinaCreate" component={MaquinaFormScreen} options={{ title: 'Nova Máquina' }} />
+      <Stack.Screen name="MaquinaEdit" component={MaquinaFormScreen} options={{ title: 'Editar Máquina' }} />
+      <Stack.Screen name="SetorCreate" component={SetorFormScreen} options={{ title: 'Novo Setor' }} />
+      <Stack.Screen name="SetorEdit" component={SetorFormScreen} options={{ title: 'Editar Setor' }} />
+      <Stack.Screen name="DepartamentoCreate" component={DepartamentoFormScreen} options={{ title: 'Novo Departamento' }} />
+      <Stack.Screen name="DepartamentoEdit" component={DepartamentoFormScreen} options={{ title: 'Editar Departamento' }} />
+    </Stack.Navigator>
+  );
+}
