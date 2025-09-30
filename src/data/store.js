@@ -108,3 +108,87 @@ export function deleteMachine(id) {
 }
 
 
+// Inventory (Estoque)
+let inventory = [
+  {
+    id: 'inv-1',
+    name: 'Parafuso M6x20',
+    sku: 'PAR-M6-20',
+    quantity: 1500,
+    minStock: 500,
+    unit: 'un',
+    location: 'Almox A1',
+    category: 'Fixadores',
+    reserved: 120,
+    unitPrice: 0.12,
+    updatedAt: '2024-08-20T10:00:00Z',
+  },
+  {
+    id: 'inv-2',
+    name: 'Chapa Aço 2mm',
+    sku: 'CHA-ACO-2',
+    quantity: 75,
+    minStock: 100,
+    unit: 'pz',
+    location: 'Almox B3',
+    category: 'Matéria-prima',
+    reserved: 10,
+    unitPrice: 45.5,
+    updatedAt: '2024-09-05T15:30:00Z',
+  },
+];
+
+export function getInventoryStatus(item) {
+  const quantity = Number(item?.quantity || 0);
+  const minStock = Number(item?.minStock || 0);
+  if (quantity <= 0) return 'Sem estoque';
+  if (quantity <= Math.max(1, minStock * 0.5)) return 'Crítico';
+  if (quantity <= minStock) return 'Atenção';
+  return 'OK';
+}
+
+export function listInventory() {
+  return inventory.map(i => ({ ...i, status: getInventoryStatus(i) }));
+}
+export function createInventoryItem(payload) {
+  const item = { id: generateId('inv'), updatedAt: new Date().toISOString(), ...payload };
+  inventory.push(item);
+  return item;
+}
+export function updateInventoryItem(id, updates) {
+  inventory = inventory.map(i => i.id === id ? { ...i, ...updates, updatedAt: new Date().toISOString() } : i);
+}
+export function deleteInventoryItem(id) {
+  inventory = inventory.filter(i => i.id !== id);
+}
+
+export function computeInventoryStats() {
+  let totalItems = inventory.length;
+  let totalReserved = 0;
+  let totalAvailable = 0;
+  let totalLow = 0;
+  let totalOut = 0;
+  let totalValue = 0;
+
+  for (const i of inventory) {
+    const reserved = Number(i.reserved || 0);
+    const qty = Number(i.quantity || 0);
+    const min = Number(i.minStock || 0);
+    const price = Number(i.unitPrice || 0);
+    const available = Math.max(qty - reserved, 0);
+    totalReserved += reserved;
+    totalAvailable += available;
+    if (qty <= 0) totalOut += 1; else if (qty <= Math.max(1, min * 0.5)) totalLow += 1; else if (qty <= min) totalLow += 1;
+    totalValue += available * price;
+  }
+
+  return {
+    totalItems,
+    totalReserved,
+    totalAvailable,
+    totalLow,
+    totalOut,
+    totalValue,
+  };
+}
+

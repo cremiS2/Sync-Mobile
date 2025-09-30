@@ -11,6 +11,7 @@ import MaquinasScreen from '../screens/MaquinasScreen';
 import SetoresScreen from '../screens/SetoresScreen';
 import DepartamentosScreen from '../screens/DepartamentosScreen';
 import DashboardScreen from '../screens/DashboardPage';
+import EstoqueScreen from '../screens/EstoqueScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -33,6 +34,8 @@ export default function TabNavigator() {
             iconName = focused ? 'domain' : 'domain';
           } else if (route.name === 'Dashboard') {
             iconName = focused ? 'view-dashboard' : 'view-dashboard-outline';
+          } else if (route.name === 'Estoque') {
+            iconName = focused ? 'package-variant' : 'package-variant-closed';
           }
           return (
             <MaterialCommunityIcons
@@ -84,6 +87,11 @@ export default function TabNavigator() {
         name="Departamentos" 
         component={DepartamentosScreen} 
         options={{ title: 'Departamentos' }}
+      />
+      <Tab.Screen 
+        name="Estoque" 
+        component={EstoqueScreen} 
+        options={{ title: 'Estoque' }}
       />
     </Tab.Navigator>
   );

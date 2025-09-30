@@ -11,6 +11,8 @@ import FuncionarioFormScreen from '../screens/admin/FuncionarioFormScreen';
 import MaquinaFormScreen from '../screens/admin/MaquinaFormScreen';
 import SetorFormScreen from '../screens/admin/SetorFormScreen';
 import DepartamentoFormScreen from '../screens/admin/DepartamentoFormScreen';
+import EstoqueFormScreen from '../screens/admin/EstoqueFormScreen';
+import InventoryDetailScreen from '../screens/InventoryDetailScreen';
 
 const Stack = createStackNavigator();
 
@@ -55,6 +57,9 @@ export default function AppNavigator() {
       <Stack.Screen name="SetorEdit" component={SetorFormScreen} options={{ title: 'Editar Setor' }} />
       <Stack.Screen name="DepartamentoCreate" component={DepartamentoFormScreen} options={{ title: 'Novo Departamento' }} />
       <Stack.Screen name="DepartamentoEdit" component={DepartamentoFormScreen} options={{ title: 'Editar Departamento' }} />
+      <Stack.Screen name="InventoryCreate" component={EstoqueFormScreen} options={{ title: 'Novo Item de Estoque' }} />
+      <Stack.Screen name="InventoryEdit" component={EstoqueFormScreen} options={{ title: 'Editar Item de Estoque' }} />
+      <Stack.Screen name="InventoryDetail" component={InventoryDetailScreen} options={{ title: 'Detalhes do Item' }} />
     </Stack.Navigator>
   );
 }
