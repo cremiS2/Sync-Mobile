@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Animated, Pressable, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Animated, Pressable, useWindowDimensions, Platform } from 'react-native';
 import CustomButton from '../components/CustomButton';
 import { useTheme } from '../contexts/ThemeContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -17,9 +17,10 @@ export default function LandingPage({ navigation }) {
   const [kpiSyncs, setKpiSyncs] = useState(0);
 
   useEffect(() => {
+    const isWeb = Platform.OS === 'web';
     Animated.parallel([
-      Animated.timing(heroOpacity, { toValue: 1, duration: 450, useNativeDriver: true }),
-      Animated.timing(heroTranslate, { toValue: 0, duration: 450, useNativeDriver: true }),
+      Animated.timing(heroOpacity, { toValue: 1, duration: 450, useNativeDriver: !isWeb }),
+      Animated.timing(heroTranslate, { toValue: 0, duration: 450, useNativeDriver: !isWeb }),
     ]).start();
   }, [heroOpacity, heroTranslate]);
 

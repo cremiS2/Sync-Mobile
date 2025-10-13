@@ -11,10 +11,12 @@ import {
   Switch,
   Pressable,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import CustomButton from "../components/CustomButton";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../contexts/ThemeContext";
+import { useAuth } from "../contexts/AuthContext";
 import { isValidEmail } from "../utils/helpers";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -25,20 +27,24 @@ export default function LoginScreen() {
   const [lembrar, setLembrar] = useState(true);
   const [emailErro, setEmailErro] = useState("");
   const [senhaErro, setSenhaErro] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const { login } = useAuth();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const logoScale = useRef(new Animated.Value(0.9)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // useNativeDriver only on native platforms, not web
+    const isWeb = Platform.OS === 'web';
     Animated.parallel([
-      Animated.spring(logoScale, { toValue: 1, useNativeDriver: true }),
-      Animated.timing(logoOpacity, { toValue: 1, duration: 350, useNativeDriver: true }),
+      Animated.spring(logoScale, { toValue: 1, useNativeDriver: !isWeb }),
+      Animated.timing(logoOpacity, { toValue: 1, duration: 350, useNativeDriver: !isWeb }),
     ]).start();
   }, [logoScale, logoOpacity]);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     // Validação avançada
     let ok = true;
     setEmailErro("");
@@ -56,8 +62,16 @@ export default function LoginScreen() {
     }
     if (!ok) return;
 
-    // Simulação de login bem-sucedido
-    navigation.navigate("MainTabs");
+    // Login via API
+    setLoading(true);
+    try {
+      await login(email, senha);
+      navigation.navigate("MainTabs");
+    } catch (error) {
+      Alert.alert("Erro ao fazer login", error.message || "Verifique suas credenciais e tente novamente");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -126,7 +140,17 @@ export default function LoginScreen() {
               </Pressable>
             </View>
 
-            <CustomButton title="Entrar" onPress={handleLogin} style={{ marginTop: 12 }} />
+            <CustomButton 
+              title={loading ? "Entrando..." : "Entrar"} 
+              onPress={handleLogin} 
+              style={{ marginTop: 12 }}
+              disabled={loading}
+            />
+            {loading && (
+              <View style={{ alignItems: 'center', marginTop: 12 }}>
+                <ActivityIndicator size="small" color={colors.primary} />
+              </View>
+            )}
 
             <View style={styles.dividerRow}>
               <View style={styles.divider} />

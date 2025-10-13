@@ -1,12 +1,11 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, TextInput, Pressable } from 'react-native';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TextInput, Pressable, Alert } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import Skeleton from '../components/Skeleton';
 import FAB from '../components/FAB';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { listEmployees, deleteEmployee } from '../data/store';
-import { Alert } from 'react-native';
+import { getEmployees, deleteEmployee } from '../services/employeeService';
 
 const dadosFuncionarios = [
   { id: '1', nome: 'João Silva', cargo: 'Desenvolvedor', setor: 'TI' },
@@ -33,19 +32,31 @@ export default function FuncionariosScreen() {
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [employees, setEmployees] = useState([]);
+  const [error, setError] = useState(null);
 
-  React.useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(t);
+  useEffect(() => {
+    loadEmployees();
   }, []);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setLoading(true);
-    setTimeout(() => {
+  const loadEmployees = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getEmployees();
+      setEmployees(Array.isArray(data) ? data : data.content || []);
+    } catch (err) {
+      setError(err.message);
+      Alert.alert('Erro', 'Não foi possível carregar os funcionários: ' + err.message);
+    } finally {
       setLoading(false);
-      setRefreshing(false);
-    }, 900);
+    }
+  };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadEmployees();
+    setRefreshing(false);
   }, []);
 
   return (
@@ -54,11 +65,11 @@ export default function FuncionariosScreen() {
         <Text style={styles.titulo}>Funcionários</Text>
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{listEmployees().length}</Text>
+            <Text style={styles.statNumber}>{employees.length}</Text>
             <Text style={styles.statLabel}>Total</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{listEmployees().filter(e => e.status === 'Ativo').length}</Text>
+            <Text style={styles.statNumber}>{employees.filter(e => e.status === 'ATIVO' || e.status === 'Active').length}</Text>
             <Text style={styles.statLabel}>Ativos</Text>
           </View>
         </View>
@@ -79,8 +90,8 @@ export default function FuncionariosScreen() {
         </View>
       ) : (
         <FlatList
-          data={listEmployees()}
-          keyExtractor={(item) => item.id}
+          data={employees}
+          keyExtractor={(item) => item.id?.toString()}
           renderItem={({ item }) => (
             <FuncionarioItem
               item={item}
