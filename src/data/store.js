@@ -1,33 +1,8 @@
 // In-memory demo store following the requested schema
 
-let departments = [
-  {
-    id: 'dep-1',
-    name: 'Produção',
-    description: 'Responsável pela fabricação dos produtos.',
-    location: 'Bloco A',
-    status: 'active',
-    employees: 25,
-    budget: 120000,
-    createdAt: '2024-01-10T08:00:00Z',
-  },
-  {
-    id: 'dep-2',
-    name: 'TI',
-    description: 'Tecnologia da Informação',
-    location: 'Bloco C',
-    status: 'active',
-    employees: 12,
-    budget: 80000,
-    createdAt: '2024-02-03T10:00:00Z',
-  },
-];
+let departments = [];
 
-let sectors = [
-  { id: 'sec-1', name: 'Montagem', employees: 10, efficiency: 92, production: 300, departmentId: 'dep-1' },
-  { id: 'sec-2', name: 'Acabamento', employees: 8, efficiency: 88, production: 220, departmentId: 'dep-1' },
-  { id: 'sec-3', name: 'Infraestrutura', employees: 5, efficiency: 95, production: 0, departmentId: 'dep-2' },
-];
+let sectors = [];
 
 let employees = [
   { id: 'emp-1', name: 'Maria Oliveira', departmentId: 'dep-1', sectorId: 'sec-1', role: 'Operador', shift: 'Manhã', status: 'Active', photo: '' },
@@ -35,10 +10,7 @@ let employees = [
   { id: 'emp-3', name: 'Pedro Santos', departmentId: 'dep-1', sectorId: 'sec-2', role: 'Técnico', shift: 'Noite', status: 'On Leave', photo: '' },
 ];
 
-let machines = [
-  { id: 'mac-1', name: 'Prensa Hidráulica', departmentId: 'dep-1', sectorId: 'sec-1', status: 'Operando', oee: 85, throughput: 120, lastMaintenance: '2024-07-15T10:00:00Z', photo: '' },
-  { id: 'mac-2', name: 'Servidor Dell R740', departmentId: 'dep-2', sectorId: 'sec-3', status: 'Operando', oee: 99, throughput: 0, lastMaintenance: '2024-08-02T12:00:00Z', photo: '' },
-];
+let machines = [];
 
 function generateId(prefix) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;

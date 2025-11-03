@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import CustomButton from '../../components/CustomButton';
-import { createDepartment, updateDepartment, deleteDepartment } from '../../data/store';
+import { createDepartment, updateDepartment, deleteDepartment } from '../../services/departmentService';
 import FormField from '../../components/FormField';
 import SelectField from '../../components/SelectField';
 
@@ -18,8 +18,9 @@ export default function DepartamentoFormScreen({ route, navigation }) {
   const [status, setStatus] = useState(data?.status || 'active');
   const [orcamento, setOrcamento] = useState(String(data?.budget || ''));
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const e = {};
     if (!nome.trim()) e.nome = 'Informe o nome';
     if (!local.trim()) e.local = 'Informe o local';
@@ -27,17 +28,52 @@ export default function DepartamentoFormScreen({ route, navigation }) {
     setErrors(e);
     if (Object.keys(e).length) return;
 
-    const payload = { name: nome.trim(), description: descricao.trim(), location: local.trim(), status, employees: 0, budget: Number(orcamento) || 0 };
-    if (editing) updateDepartment(data.id, payload); else createDepartment(payload);
-    Alert.alert('Sucesso', editing ? 'Departamento atualizado' : 'Departamento criado');
-    navigation.goBack();
+    try {
+      setLoading(true);
+      const payload = {
+        name: nome.trim(),
+        description: descricao.trim(),
+        location: local.trim(),
+        status,
+        employees: 0,
+        budget: Number(orcamento) || 0
+      };
+      
+      if (editing) {
+        await updateDepartment(data.id, payload);
+      } else {
+        await createDepartment(payload);
+      }
+      
+      Alert.alert('Sucesso', editing ? 'Departamento atualizado' : 'Departamento criado');
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert('Erro', error.message || 'Não foi possível salvar o departamento');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = () => {
     if (!editing) return;
     Alert.alert('Excluir', 'Deseja excluir este departamento?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir', style: 'destructive', onPress: () => { deleteDepartment(data.id); navigation.goBack(); } },
+      { 
+        text: 'Excluir', 
+        style: 'destructive', 
+        onPress: async () => {
+          try {
+            setLoading(true);
+            await deleteDepartment(data.id);
+            Alert.alert('Sucesso', 'Departamento excluído');
+            navigation.goBack();
+          } catch (error) {
+            Alert.alert('Erro', error.message || 'Não foi possível excluir o departamento');
+          } finally {
+            setLoading(false);
+          }
+        }
+      },
     ]);
   };
 
@@ -53,7 +89,13 @@ export default function DepartamentoFormScreen({ route, navigation }) {
         { label: 'Manutenção', value: 'maintenance' },
       ]} placeholder="Selecione" error={errors.status} />
       <FormField label="Orçamento" placeholder="Valor em R$" value={orcamento} onChangeText={setOrcamento} keyboardType="numeric" />
-      <CustomButton title={editing ? 'Salvar alterações' : 'Criar'} onPress={handleSave} style={{ marginTop: 12 }} />
+      <CustomButton 
+        title={editing ? 'Salvar alterações' : 'Criar'} 
+        onPress={handleSave} 
+        style={{ marginTop: 12 }}
+        disabled={loading}
+      />
+      {loading && <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 12 }} />}
       {editing ? (
         <Pressable onPress={handleDelete} style={styles.deleteBtn}>
           <Text style={styles.deleteText}>Excluir</Text>

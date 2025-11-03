@@ -95,10 +95,23 @@ export const deleteSector = async (id) => {
 const handleError = (error) => {
   if (error.response) {
     const { status, data } = error.response;
-    return new Error(data.menssagem || `Erro ${status}`);
+    console.error('API Error Response:', { status, data });
+    
+    // Handle specific error codes
+    if (status === 500) {
+      return new Error('Erro interno do servidor. Por favor, contate o administrador do sistema.');
+    } else if (status === 404) {
+      return new Error('Recurso não encontrado.');
+    } else if (status === 401 || status === 403) {
+      return new Error('Acesso não autorizado.');
+    }
+    
+    return new Error(data.menssagem || data.message || `Erro ${status}`);
   } else if (error.request) {
-    return new Error('Não foi possível conectar ao servidor');
+    console.error('Network Error:', error.request);
+    return new Error('Não foi possível conectar ao servidor. Verifique sua conexão com a internet.');
   } else {
-    return new Error('Erro ao processar requisição');
+    console.error('Request Error:', error.message);
+    return new Error('Erro ao processar requisição: ' + error.message);
   }
 };

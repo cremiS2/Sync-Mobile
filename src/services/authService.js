@@ -16,8 +16,12 @@ export const login = async (email, password) => {
     
     const { token, exp } = response.data;
     
+    // exp vem em milissegundos (timestamp), calcular segundos até expiração
+    const now = Date.now();
+    const expiresInSeconds = Math.floor((exp - now) / 1000);
+    
     // Save token to AsyncStorage
-    await saveAuthToken(token, exp);
+    await saveAuthToken(token, expiresInSeconds);
     
     return response.data;
   } catch (error) {

@@ -12,7 +12,7 @@ const BACKEND_OPTIONS = {
 // Use 'LOCAL' para desenvolvimento local
 // Use 'LOCAL_ANDROID_EMULATOR' para emulador Android
 // Use 'AZURE' para produção (quando o site estiver ativo)
-export const API_BASE_URL = BACKEND_OPTIONS.LOCAL;
+export const API_BASE_URL = BACKEND_OPTIONS.AZURE;
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -46,6 +46,17 @@ export const API_ENDPOINTS = {
   
   // Allocations
   ALLOCATIONS: '/allocated-employee-machine',
+  
+  // Stock
+  STOCK: '/stock',
+  STOCK_BY_ID: (id) => `/stock/${id}`,
+  
+  // Reports
+  REPORTS_GENERAL: '/relatorios/geral',
+  REPORTS_EMPLOYEES: '/relatorios/funcionarios',
+  REPORTS_MACHINES: '/relatorios/maquinas',
+  EMPLOYEE_REPORT: '/employee/relatorio',
+  MACHINE_REPORT: '/machine/relatorio',
 };
 
 // Default pagination

@@ -78,6 +78,61 @@ public class CorsConfig implements WebMvcConfigurer {
 
 ---
 
+## ❌ Erro: 500 Internal Server Error no Endpoint /sector
+
+### Problema
+```
+GET https://sync-d8hac6hdg3czc4aa.brazilsouth-01.azurewebsites.net/sector?page-number=0&page-size=100 
+500 (Internal Server Error)
+```
+
+### Causa
+O backend está retornando erro 500 ao tentar buscar setores. Possíveis causas:
+1. **Erro no banco de dados**: Problema na query ou conexão com o banco
+2. **Dados corrompidos**: Registros com valores inválidos
+3. **Relacionamento quebrado**: Problema na relação entre Setor e Departamento
+4. **Configuração do backend**: Erro na lógica do controller/service
+
+### Solução
+
+#### 1. Verificar logs do backend
+Acesse os logs do Azure App Service ou logs locais para identificar o erro específico:
+```bash
+# Se estiver rodando localmente
+tail -f logs/spring.log
+```
+
+#### 2. Testar endpoint diretamente
+Use Postman ou curl para testar:
+```bash
+curl -X GET "https://sync-d8hac6hdg3czc4aa.brazilsouth-01.azurewebsites.net/sector?page-number=0&page-size=100" \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+#### 3. Verificar banco de dados
+Conecte ao banco e verifique se há dados válidos:
+```sql
+SELECT * FROM sector LIMIT 10;
+SELECT * FROM department LIMIT 10;
+```
+
+#### 4. Verificar relacionamentos
+Certifique-se que todos os setores têm um departamento válido:
+```sql
+SELECT s.* FROM sector s 
+LEFT JOIN department d ON s.department_id = d.id 
+WHERE d.id IS NULL;
+```
+
+#### 5. Solução temporária no app
+O app já trata o erro 500 e exibe mensagem amigável ao usuário. Para desenvolvimento, use backend local:
+```javascript
+// src/config/api.js
+export const API_BASE_URL = BACKEND_OPTIONS.LOCAL;
+```
+
+---
+
 ## ⚠️ Warning: useNativeDriver not supported
 
 ### Problema

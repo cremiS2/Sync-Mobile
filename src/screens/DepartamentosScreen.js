@@ -1,18 +1,11 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, TextInput, Pressable } from 'react-native';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TextInput, Pressable, Alert } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import Skeleton from '../components/Skeleton';
 import FAB from '../components/FAB';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { listDepartments } from '../data/store';
-
-const dadosDepartamentos = [
-  { id: '1', nome: 'Recursos Humanos', diretor: 'Juliana Martins', orcamento: 'R$ 250.000,00' },
-  { id: '2', nome: 'Comercial', diretor: 'Ricardo Gomes', orcamento: 'R$ 350.000,00' },
-  { id: '3', nome: 'Operações', diretor: 'Marcelo Costa', orcamento: 'R$ 500.000,00' },
-  { id: '4', nome: 'Administrativo', diretor: 'Patrícia Lopes', orcamento: 'R$ 200.000,00' },
-];
+import { getDepartments } from '../services/departmentService';
 
 const DepartamentoItem = ({ item, styles, onPress }) => (
   <Pressable onPress={() => onPress(item)} style={styles.itemContainer}>
@@ -35,20 +28,45 @@ export default function DepartamentosScreen() {
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [departments, setDepartments] = useState([]);
+  const [searchText, setSearchText] = useState('');
 
-  React.useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(t);
-  }, []);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setLoading(true);
-    setTimeout(() => {
+  const loadDepartments = async () => {
+    try {
+      setLoading(true);
+      const data = await getDepartments({ pageSize: 100 });
+      const deptArray = Array.isArray(data) ? data : (data?.content || []);
+      setDepartments(deptArray);
+    } catch (error) {
+      Alert.alert('Erro', error.message || 'Não foi possível carregar os departamentos');
+      setDepartments([]);
+    } finally {
       setLoading(false);
-      setRefreshing(false);
-    }, 900);
+    }
+  };
+
+  useEffect(() => {
+    loadDepartments();
   }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadDepartments();
+    setRefreshing(false);
+  }, []);
+
+  const filteredDepartments = useMemo(() => {
+    if (!searchText.trim()) return departments;
+    const search = searchText.toLowerCase();
+    return departments.filter(d => 
+      d.name?.toLowerCase().includes(search) ||
+      d.location?.toLowerCase().includes(search)
+    );
+  }, [departments, searchText]);
+
+  const totalDepartments = departments.length;
+  const activeDepartments = departments.filter(d => d.status === 'active').length;
+  const totalBudget = departments.reduce((acc, d) => acc + (d.budget || 0), 0);
 
   return (
     <View style={styles.container}>
@@ -56,30 +74,33 @@ export default function DepartamentosScreen() {
         <Text style={styles.titulo}>Departamentos</Text>
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{listDepartments().length}</Text>
+            <Text style={styles.statNumber}>{totalDepartments}</Text>
             <Text style={styles.statLabel}>Total</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{listDepartments().filter(d => d.status === 'Ativo').length}</Text>
+            <Text style={styles.statNumber}>{activeDepartments}</Text>
             <Text style={styles.statLabel}>Ativos</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>R$ {(listDepartments().reduce((acc, d) => {
-              const budget = d.budget || '0';
-              const cleanBudget = typeof budget === 'string' ? budget.replace(/[R$.,\s]/g, '') : '0';
-              return acc + parseFloat(cleanBudget || 0);
-            }, 0) / 1000).toFixed(0)}K</Text>
+            <Text style={styles.statNumber}>R$ {(totalBudget / 1000).toFixed(0)}K</Text>
             <Text style={styles.statLabel}>Orçamento</Text>
           </View>
         </View>
       </View>
       <View style={styles.searchWrap}>
         <Ionicons name="search-outline" size={18} color={colors.secondary} style={{ marginRight: 8 }} />
-        <TextInput style={styles.searchInput} placeholder="Buscar por departamento, diretor" placeholderTextColor={colors.secondary} />
-        <Pressable style={styles.filterChip}>
-          <MaterialCommunityIcons name="filter-outline" size={16} color={colors.primary} />
-          <Text style={styles.filterText}>Filtros</Text>
-        </Pressable>
+        <TextInput 
+          style={styles.searchInput} 
+          placeholder="Buscar por departamento" 
+          placeholderTextColor={colors.secondary}
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+        {searchText ? (
+          <Pressable onPress={() => setSearchText('')} style={{ marginLeft: 8 }}>
+            <Ionicons name="close-circle" size={20} color={colors.secondary} />
+          </Pressable>
+        ) : null}
       </View>
       {loading ? (
         <View>
@@ -89,8 +110,8 @@ export default function DepartamentosScreen() {
         </View>
       ) : (
         <FlatList
-          data={listDepartments()}
-          keyExtractor={(item) => item.id}
+          data={filteredDepartments}
+          keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
             <DepartamentoItem
               item={item}
@@ -100,6 +121,14 @@ export default function DepartamentosScreen() {
           )}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl colors={[colors.primary]} tintColor={colors.primary} refreshing={refreshing} onRefresh={onRefresh} />}
+          ListEmptyComponent={
+            !loading ? (
+              <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+                <MaterialCommunityIcons name="domain" size={64} color={colors.secondary} />
+                <Text style={{ color: colors.secondary, marginTop: 16, fontSize: 16 }}>Nenhum departamento encontrado</Text>
+              </View>
+            ) : null
+          }
         />
       )}
       <FAB onPress={() => navigation.navigate('DepartamentoCreate')} />

@@ -1,32 +1,29 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, TextInput, Pressable } from 'react-native';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TextInput, Pressable, Alert } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import Skeleton from '../components/Skeleton';
 import FAB from '../components/FAB';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { listMachines } from '../data/store';
+import { getMachines } from '../services/machineService';
 
-const dadosMaquinas = [
-  { id: '1', nome: 'Impressora 3D', modelo: 'XYZ-2000', setor: 'Produção' },
-  { id: '2', nome: 'Servidor', modelo: 'Dell R740', setor: 'TI' },
-  { id: '3', nome: 'Máquina CNC', modelo: 'CNC-5000', setor: 'Fabricação' },
-];
-
-const MaquinaItem = ({ item, styles, onPress }) => (
-  <Pressable onPress={() => onPress(item)} style={styles.itemContainer}>
-    <View style={styles.rowBetween}>
-      <View style={styles.machineBadge}>
-        <MaterialCommunityIcons name="cog-outline" size={18} color={styles.badgeIcon.color} />
+const MaquinaItem = ({ item, styles, onPress }) => {
+  const oeePercent = item.oee ? Math.round(item.oee * 100) : 0;
+  return (
+    <Pressable onPress={() => onPress(item)} style={styles.itemContainer}>
+      <View style={styles.rowBetween}>
+        <View style={styles.machineBadge}>
+          <MaterialCommunityIcons name="cog-outline" size={18} color={styles.badgeIcon.color} />
+        </View>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={styles.nomeText}>{item.name}</Text>
+          <Text style={styles.infoText}>OEE {oeePercent}% · {item.status}</Text>
+        </View>
+        <MaterialCommunityIcons name="chevron-right" size={20} color={styles.chevronColor.color} />
       </View>
-      <View style={{ flex: 1, marginLeft: 10 }}>
-        <Text style={styles.nomeText}>{item.name}</Text>
-        <Text style={styles.infoText}>OEE {item.oee}% · {item.status}</Text>
-      </View>
-      <MaterialCommunityIcons name="chevron-right" size={20} color={styles.chevronColor.color} />
-    </View>
-  </Pressable>
-);
+    </Pressable>
+  );
+};
 
 export default function MaquinasScreen() {
   const { colors } = useTheme();
@@ -34,20 +31,48 @@ export default function MaquinasScreen() {
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [machines, setMachines] = useState([]);
+  const [searchText, setSearchText] = useState('');
 
-  React.useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(t);
-  }, []);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setLoading(true);
-    setTimeout(() => {
+  const loadMachines = async () => {
+    try {
+      setLoading(true);
+      const data = await getMachines({ pageSize: 100 });
+      // A API retorna um objeto paginado com { content: [...] }
+      const machinesArray = Array.isArray(data) ? data : (data?.content || []);
+      setMachines(machinesArray);
+    } catch (error) {
+      Alert.alert('Erro', error.message || 'Não foi possível carregar as máquinas');
+      setMachines([]);
+    } finally {
       setLoading(false);
-      setRefreshing(false);
-    }, 900);
+    }
+  };
+
+  useEffect(() => {
+    loadMachines();
   }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadMachines();
+    setRefreshing(false);
+  }, []);
+
+  const filteredMachines = useMemo(() => {
+    if (!searchText.trim()) return machines;
+    const search = searchText.toLowerCase();
+    return machines.filter(m => 
+      m.name?.toLowerCase().includes(search) ||
+      m.status?.toLowerCase().includes(search)
+    );
+  }, [machines, searchText]);
+
+  const totalMachines = machines.length;
+  const operatingMachines = machines.filter(m => m.status === 'OPERANDO').length;
+  const avgOEE = machines.length > 0 
+    ? Math.round((machines.reduce((acc, m) => acc + (m.oee || 0), 0) / machines.length) * 100)
+    : 0;
 
   return (
     <View style={styles.container}>
@@ -55,26 +80,33 @@ export default function MaquinasScreen() {
         <Text style={styles.titulo}>Máquinas</Text>
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{listMachines().length}</Text>
+            <Text style={styles.statNumber}>{totalMachines}</Text>
             <Text style={styles.statLabel}>Total</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{listMachines().filter(m => m.status === 'Operando').length}</Text>
+            <Text style={styles.statNumber}>{operatingMachines}</Text>
             <Text style={styles.statLabel}>Operando</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{Math.round(listMachines().reduce((acc, m) => acc + m.oee, 0) / listMachines().length)}%</Text>
+            <Text style={styles.statNumber}>{avgOEE}%</Text>
             <Text style={styles.statLabel}>OEE Médio</Text>
           </View>
         </View>
       </View>
       <View style={styles.searchWrap}>
         <Ionicons name="search-outline" size={18} color={colors.secondary} style={{ marginRight: 8 }} />
-        <TextInput style={styles.searchInput} placeholder="Buscar por nome, modelo, setor" placeholderTextColor={colors.secondary} />
-        <Pressable style={styles.filterChip}>
-          <MaterialCommunityIcons name="filter-outline" size={16} color={colors.primary} />
-          <Text style={styles.filterText}>Filtros</Text>
-        </Pressable>
+        <TextInput 
+          style={styles.searchInput} 
+          placeholder="Buscar por nome, modelo, setor" 
+          placeholderTextColor={colors.secondary}
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+        {searchText ? (
+          <Pressable onPress={() => setSearchText('')} style={{ marginLeft: 8 }}>
+            <Ionicons name="close-circle" size={20} color={colors.secondary} />
+          </Pressable>
+        ) : null}
       </View>
       {loading ? (
         <View>
@@ -84,8 +116,8 @@ export default function MaquinasScreen() {
         </View>
       ) : (
         <FlatList
-          data={listMachines()}
-          keyExtractor={(item) => item.id}
+          data={filteredMachines}
+          keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
             <MaquinaItem
               item={item}
@@ -95,6 +127,14 @@ export default function MaquinasScreen() {
           )}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl colors={[colors.primary]} tintColor={colors.primary} refreshing={refreshing} onRefresh={onRefresh} />}
+          ListEmptyComponent={
+            !loading ? (
+              <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+                <MaterialCommunityIcons name="cog-off-outline" size={64} color={colors.secondary} />
+                <Text style={{ color: colors.secondary, marginTop: 16, fontSize: 16 }}>Nenhuma máquina encontrada</Text>
+              </View>
+            ) : null
+          }
         />
       )}
       <FAB onPress={() => navigation.navigate('MaquinaCreate')} />
