@@ -1,11 +1,11 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TextInput, Pressable, Alert } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
-import Skeleton from '../components/Skeleton';
-import FAB from '../components/FAB';
+import Skeleton from '@/components/Skeleton';
+import FAB from '@/components/FAB';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { getEmployees, deleteEmployee } from '../services/employeeService';
+import { getEmployees, deleteEmployee } from '@/services/employeeService';
 
 const dadosFuncionarios = [
   { id: '1', nome: 'João Silva', cargo: 'Desenvolvedor', setor: 'TI' },

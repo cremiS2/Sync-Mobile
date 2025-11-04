@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-native';
-import { useTheme } from '../../contexts/ThemeContext';
-import CustomButton from '../../components/CustomButton';
-import FormField from '../../components/FormField';
-import SelectField from '../../components/SelectField';
-import { createInventoryItem, updateInventoryItem, deleteInventoryItem } from '../../data/store';
+import { useTheme } from '@/contexts/ThemeContext';
+import CustomButton from '@/components/CustomButton';
+import FormField from '@/components/FormField';
+import SelectField from '@/components/SelectField';
+import { createInventoryItem, updateInventoryItem, deleteInventoryItem } from '@/data/store';
 
 export default function EstoqueFormScreen({ route, navigation }) {
   const { colors } = useTheme();

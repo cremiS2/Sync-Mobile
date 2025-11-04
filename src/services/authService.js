@@ -1,5 +1,5 @@
 import api, { saveAuthToken, clearAuthToken } from './api';
-import { API_ENDPOINTS } from '../config/api';
+import { API_ENDPOINTS } from '@/config/api';
 
 /**
  * Login with email and password

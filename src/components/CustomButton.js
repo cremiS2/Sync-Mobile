@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Text, StyleSheet, Animated, Pressable } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function CustomButton({ title, onPress, style }) {
   const { colors } = useTheme();

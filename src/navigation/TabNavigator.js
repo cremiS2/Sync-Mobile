@@ -1,17 +1,18 @@
 import React, { useMemo } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 
 // Importando as telas
-import FuncionariosScreen from '../screens/FuncionariosScreen';
-import MaquinasScreen from '../screens/MaquinasScreen';
-import SetoresScreen from '../screens/SetoresScreen';
-import DepartamentosScreen from '../screens/DepartamentosScreen';
-import DashboardScreen from '../screens/DashboardPage';
-import EstoqueScreen from '../screens/EstoqueScreen';
+import FuncionariosScreen from '@/screens/FuncionariosScreen';
+import MaquinasScreen from '@/screens/MaquinasScreen';
+import SetoresScreen from '@/screens/SetoresScreen';
+import DepartamentosScreen from '@/screens/DepartamentosScreen';
+import DashboardScreen from '@/screens/DashboardPage';
+import EstoqueScreen from '@/screens/EstoqueScreen';
+import ProfileScreen from '@/screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -36,6 +37,8 @@ export default function TabNavigator() {
             iconName = focused ? 'view-dashboard' : 'view-dashboard-outline';
           } else if (route.name === 'Estoque') {
             iconName = focused ? 'package-variant' : 'package-variant-closed';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'account' : 'account-outline';
           }
           return (
             <MaterialCommunityIcons
@@ -88,10 +91,15 @@ export default function TabNavigator() {
         component={DepartamentosScreen} 
         options={{ title: 'Departamentos' }}
       />
-      <Tab.Screen 
-        name="Estoque" 
-        component={EstoqueScreen} 
+      <Tab.Screen
+        name="Estoque"
+        component={EstoqueScreen}
         options={{ title: 'Estoque' }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ title: 'Perfil' }}
       />
     </Tab.Navigator>
   );

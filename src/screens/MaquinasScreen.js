@@ -1,11 +1,11 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TextInput, Pressable, Alert } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import Skeleton from '../components/Skeleton';
-import FAB from '../components/FAB';
+import { useTheme } from '@/contexts/ThemeContext';
+import Skeleton from '@/components/Skeleton';
+import FAB from '@/components/FAB';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { getMachines } from '../services/machineService';
+import { getMachines } from '@/services/machineService';
 
 const MaquinaItem = ({ item, styles, onPress }) => {
   const oeePercent = item.oee ? Math.round(item.oee * 100) : 0;

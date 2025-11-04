@@ -1,18 +1,19 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import LandingPage from "../screens/LandingPage";
-import LoginScreen from "../screens/LoginScreen";
-import HomeScreen from "../screens/HomeScreen";
-import DashboardScreen from '../screens/DashboardPage';
+import LandingPage from "@/screens/LandingPage";
+import LoginScreen from "@/screens/LoginScreen";
+import HomeScreen from "@/screens/HomeScreen";
+import DashboardScreen from '@/screens/DashboardPage';
 import TabNavigator from './TabNavigator';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import FuncionarioFormScreen from '../screens/admin/FuncionarioFormScreen';
-import MaquinaFormScreen from '../screens/admin/MaquinaFormScreen';
-import SetorFormScreen from '../screens/admin/SetorFormScreen';
-import DepartamentoFormScreen from '../screens/admin/DepartamentoFormScreen';
-import EstoqueFormScreen from '../screens/admin/EstoqueFormScreen';
-import InventoryDetailScreen from '../screens/InventoryDetailScreen';
+import FuncionarioFormScreen from '@/screens/admin/FuncionarioFormScreen';
+import MaquinaFormScreen from '@/screens/admin/MaquinaFormScreen';
+import SetorFormScreen from '@/screens/admin/SetorFormScreen';
+import DepartamentoFormScreen from '@/screens/admin/DepartamentoFormScreen';
+import EstoqueFormScreen from '@/screens/admin/EstoqueFormScreen';
+import InventoryDetailScreen from '@/screens/InventoryDetailScreen';
+import ProfileEditScreen from '@/screens/ProfileEditScreen';
 
 const Stack = createStackNavigator();
 
@@ -60,6 +61,7 @@ export default function AppNavigator() {
       <Stack.Screen name="InventoryCreate" component={EstoqueFormScreen} options={{ title: 'Novo Item de Estoque' }} />
       <Stack.Screen name="InventoryEdit" component={EstoqueFormScreen} options={{ title: 'Editar Item de Estoque' }} />
       <Stack.Screen name="InventoryDetail" component={InventoryDetailScreen} options={{ title: 'Detalhes do Item' }} />
+      <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Editar Perfil' }} />
     </Stack.Navigator>
   );
 }

@@ -1,5 +1,5 @@
 import api from './api';
-import { API_ENDPOINTS } from '../config/api';
+import { API_ENDPOINTS } from '@/config/api';
 import { Platform, Linking } from 'react-native';
 
 /**

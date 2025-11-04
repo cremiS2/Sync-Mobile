@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { login as apiLogin, logout as apiLogout, signUp as apiSignUp } from '../services/authService';
-import { isAuthenticated, getAuthToken } from '../services/api';
+import { login as apiLogin, logout as apiLogout, signUp as apiSignUp } from '@/services/authService';
+import { isAuthenticated, getAuthToken } from '@/services/api';
 
 const AuthContext = createContext({});
 
@@ -61,6 +61,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = async (userData) => {
+    try {
+      // Here you would typically call an API to update user data
+      // For now, we'll just update the local state
+      setUser(prev => ({ ...prev, ...userData }));
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -70,6 +81,7 @@ export const AuthProvider = ({ children }) => {
         login,
         signUp,
         logout,
+        updateUser,
         checkAuth,
       }}
     >

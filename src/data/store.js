@@ -4,11 +4,7 @@ let departments = [];
 
 let sectors = [];
 
-let employees = [
-  { id: 'emp-1', name: 'Maria Oliveira', departmentId: 'dep-1', sectorId: 'sec-1', role: 'Operador', shift: 'Manhã', status: 'Active', photo: '' },
-  { id: 'emp-2', name: 'João Silva', departmentId: 'dep-2', sectorId: 'sec-3', role: 'Analista', shift: 'Tarde', status: 'Active', photo: '' },
-  { id: 'emp-3', name: 'Pedro Santos', departmentId: 'dep-1', sectorId: 'sec-2', role: 'Técnico', shift: 'Noite', status: 'On Leave', photo: '' },
-];
+let employees = [];
 
 let machines = [];
 
@@ -81,34 +77,7 @@ export function deleteMachine(id) {
 
 
 // Inventory (Estoque)
-let inventory = [
-  {
-    id: 'inv-1',
-    name: 'Parafuso M6x20',
-    sku: 'PAR-M6-20',
-    quantity: 1500,
-    minStock: 500,
-    unit: 'un',
-    location: 'Almox A1',
-    category: 'Fixadores',
-    reserved: 120,
-    unitPrice: 0.12,
-    updatedAt: '2024-08-20T10:00:00Z',
-  },
-  {
-    id: 'inv-2',
-    name: 'Chapa Aço 2mm',
-    sku: 'CHA-ACO-2',
-    quantity: 75,
-    minStock: 100,
-    unit: 'pz',
-    location: 'Almox B3',
-    category: 'Matéria-prima',
-    reserved: 10,
-    unitPrice: 45.5,
-    updatedAt: '2024-09-05T15:30:00Z',
-  },
-];
+let inventory = [];
 
 export function getInventoryStatus(item) {
   const quantity = Number(item?.quantity || 0);

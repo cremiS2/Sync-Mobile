@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Animated, Pressable, useWindowDimensions, Platform } from 'react-native';
-import CustomButton from '../components/CustomButton';
-import { useTheme } from '../contexts/ThemeContext';
+import CustomButton from '@/components/CustomButton';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function LandingPage({ navigation }) {

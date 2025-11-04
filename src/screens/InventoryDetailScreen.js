@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Modal, TextInput } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import CustomButton from '../components/CustomButton';
-import { deleteInventoryItem, updateInventoryItem } from '../data/store';
+import CustomButton from '@/components/CustomButton';
+import { deleteInventoryItem, updateInventoryItem } from '@/data/store';
 
 export default function InventoryDetailScreen({ route, navigation }) {
   const { colors } = useTheme();

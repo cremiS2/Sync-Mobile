@@ -1,12 +1,12 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import { useTheme } from '../../contexts/ThemeContext';
-import CustomButton from '../../components/CustomButton';
-import { createMachine, updateMachine, deleteMachine } from '../../services/machineService';
-import { getSectors } from '../../services/sectorService';
-import { getDepartments } from '../../services/departmentService';
-import FormField from '../../components/FormField';
-import SelectField from '../../components/SelectField';
+import { useTheme } from '@/contexts/ThemeContext';
+import CustomButton from '@/components/CustomButton';
+import { createMachine, updateMachine, deleteMachine } from '@/services/machineService';
+import { getSectors } from '@/services/sectorService';
+import { getDepartments } from '@/services/departmentService';
+import FormField from '@/components/FormField';
+import SelectField from '@/components/SelectField';
 
 export default function MaquinaFormScreen({ route, navigation }) {
   const { colors } = useTheme();

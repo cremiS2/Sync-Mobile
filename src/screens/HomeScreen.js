@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import CustomButton from '../components/CustomButton';
-import { useTheme } from '../contexts/ThemeContext';
+import CustomButton from '@/components/CustomButton';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 
 export default function HomeScreen() {

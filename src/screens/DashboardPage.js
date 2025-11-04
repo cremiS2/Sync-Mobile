@@ -1,67 +1,132 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
-import InfoCard from "../components/InfoCard.js";
-import { useTheme } from "../contexts/ThemeContext";
-import { formatCurrency } from "../utils/helpers";
+import InfoCard from "@/components/InfoCard.js";
+import { useTheme } from "@/contexts/ThemeContext";
+import { formatCurrency } from "@/utils/helpers";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { getEmployees } from "@/services/employeeService";
+import { getMachines } from "@/services/machineService";
+import { getDepartments } from "@/services/departmentService";
+import { getSectors } from "@/services/sectorService";
+import { getStock } from "@/services/stockService";
 
 export default function DashboardPage() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  const navigation = useNavigation();
+   const { colors } = useTheme();
+   const styles = useMemo(() => createStyles(colors), [colors]);
+   const navigation = useNavigation();
+
+   const [dashboardData, setDashboardData] = useState({
+      employees: { total: 0, active: 0 },
+      machines: { total: 0, operating: 0, maintenance: 0 },
+      departments: { total: 0, active: 0 },
+      sectors: { total: 0 },
+      stock: { total: 0, available: 0 },
+      loading: true,
+      error: null
+   });
+
+   useEffect(() => {
+      const fetchDashboardData = async () => {
+         try {
+            const [employeesRes, machinesRes, departmentsRes, sectorsRes, stockRes] = await Promise.all([
+               getEmployees({ pageSize: 1000 }),
+               getMachines({ pageSize: 1000 }),
+               getDepartments({ pageSize: 1000 }),
+               getSectors({ pageSize: 1000 }),
+               getStock({ pageSize: 1000 })
+            ]);
+
+            const employees = employeesRes.content || employeesRes;
+            const machines = machinesRes.content || machinesRes;
+            const departments = departmentsRes.content || departmentsRes;
+            const sectors = sectorsRes.content || sectorsRes;
+            const stock = stockRes.content || stockRes;
+
+            setDashboardData({
+               employees: {
+                  total: employees.length,
+                  active: employees.filter(emp => emp.status === 'ATIVO').length
+               },
+               machines: {
+                  total: machines.length,
+                  operating: machines.filter(mach => mach.status === 'OPERANDO').length,
+                  maintenance: machines.filter(mach => mach.status === 'MANUTENCAO').length
+               },
+               departments: {
+                  total: departments.length,
+                  active: departments.filter(dept => dept.status === 'ATIVO').length
+               },
+               sectors: {
+                  total: sectors.length
+               },
+               stock: {
+                  total: stock.length,
+                  available: stock.filter(item => item.status === 'DISPONIVEL').length
+               },
+               loading: false,
+               error: null
+            });
+         } catch (error) {
+            console.error('Error fetching dashboard data:', error);
+            setDashboardData(prev => ({ ...prev, loading: false, error: error.message }));
+         }
+      };
+
+      fetchDashboardData();
+   }, []);
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Dashboard</Text>
 
       <View style={styles.row}>
-        <InfoCard title="Usuários" value="1.250" subtitle="Ativos este mês" color="#ff8400" />
-        <InfoCard title="Vendas" value="320" subtitle="Últimos 7 dias" color="#00b894" />
+        <InfoCard title="Funcionários" value={dashboardData.employees.total.toString()} subtitle={`${dashboardData.employees.active} ativos`} color="#ff8400" />
+        <InfoCard title="Máquinas" value={dashboardData.machines.total.toString()} subtitle={`${dashboardData.machines.operating} operando`} color="#00b894" />
       </View>
 
       <View style={styles.row}>
-        <InfoCard title="Lucro" value={formatCurrency(12500)} subtitle="Este mês" color="#0984e3" />
-        <InfoCard title="Novos Leads" value="85" subtitle="Últimas 24h" color="#d63031" />
+        <InfoCard title="Departamentos" value={dashboardData.departments.total.toString()} subtitle={`${dashboardData.departments.active} ativos`} color="#0984e3" />
+        <InfoCard title="Estoque" value={dashboardData.stock.total.toString()} subtitle={`${dashboardData.stock.available} disponível`} color="#d63031" />
       </View>
 
       {/* Ações rápidas */}
       <View style={styles.quickRow}>
         <Pressable style={styles.quickAction} onPress={() => navigation.navigate('FuncionarioCreate')}>
-          <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
-          <Text style={styles.quickText}>Novo Registro</Text>
+          <Ionicons name="person-add-outline" size={18} color={colors.primary} />
+          <Text style={styles.quickText}>Novo Funcionário</Text>
         </Pressable>
         <Pressable style={styles.quickAction} onPress={() => navigation.navigate('MaquinaCreate')}>
-          <Ionicons name="cloud-upload-outline" size={18} color={colors.primary} />
-          <Text style={styles.quickText}>Sincronizar</Text>
+          <Ionicons name="cog-outline" size={18} color={colors.primary} />
+          <Text style={styles.quickText}>Nova Máquina</Text>
         </Pressable>
-        <Pressable style={styles.quickAction} onPress={() => navigation.navigate('DepartamentoCreate')}>
-          <Ionicons name="analytics-outline" size={18} color={colors.primary} />
-          <Text style={styles.quickText}>Relatórios</Text>
+        <Pressable style={styles.quickAction} onPress={() => navigation.navigate('EstoqueCreate')}>
+          <Ionicons name="cube-outline" size={18} color={colors.primary} />
+          <Text style={styles.quickText}>Novo Item</Text>
         </Pressable>
       </View>
 
       {/* Progresso e resumo */}
       <View style={styles.summaryCard}>
         <View style={styles.summaryHeader}>
-          <Text style={styles.summaryTitle}>Meta de Vendas</Text>
-          <Text style={styles.summaryValue}>75%</Text>
+          <Text style={styles.summaryTitle}>Eficiência das Máquinas</Text>
+          <Text style={styles.summaryValue}>{dashboardData.machines.total > 0 ? Math.round((dashboardData.machines.operating / dashboardData.machines.total) * 100) : 0}%</Text>
         </View>
         <View style={styles.progressTrack}>
-          <View style={styles.progressFill} />
+          <View style={[styles.progressFill, { width: `${dashboardData.machines.total > 0 ? (dashboardData.machines.operating / dashboardData.machines.total) * 100 : 0}%` }]} />
         </View>
         <View style={styles.summaryStats}>
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Alvo</Text>
-            <Text style={styles.statValue}>{formatCurrency(20000)}</Text>
+            <Text style={styles.statLabel}>Operando</Text>
+            <Text style={styles.statValue}>{dashboardData.machines.operating}</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Atual</Text>
-            <Text style={styles.statValue}>{formatCurrency(15000)}</Text>
+            <Text style={styles.statLabel}>Manutenção</Text>
+            <Text style={styles.statValue}>{dashboardData.machines.maintenance}</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Restante</Text>
-            <Text style={styles.statValue}>{formatCurrency(5000)}</Text>
+            <Text style={styles.statLabel}>Paradas</Text>
+            <Text style={styles.statValue}>{dashboardData.machines.total - dashboardData.machines.operating - dashboardData.machines.maintenance}</Text>
           </View>
         </View>
       </View>
@@ -70,9 +135,10 @@ export default function DashboardPage() {
       <View style={styles.recentCard}>
         <Text style={styles.recentTitle}>Atividades recentes</Text>
         {[
-          { icon: 'account-plus-outline', text: 'Novo funcionário cadastrado', time: 'há 2h' },
-          { icon: 'cog-refresh-outline', text: 'Máquina XYZ revisada', time: 'há 5h' },
-          { icon: 'domain', text: 'Departamento atualizado', time: 'ontem' },
+          { icon: 'account-plus-outline', text: `${dashboardData.employees.total} funcionários registrados`, time: 'hoje' },
+          { icon: 'cog-outline', text: `${dashboardData.machines.total} máquinas monitoradas`, time: 'hoje' },
+          { icon: 'domain', text: `${dashboardData.departments.total} departamentos ativos`, time: 'hoje' },
+          { icon: 'cube-outline', text: `${dashboardData.stock.available} itens em estoque`, time: 'hoje' },
         ].map((a, i) => (
           <View key={i} style={styles.recentItem}>
             <MaterialCommunityIcons name={a.icon} size={18} color={colors.primary} style={{ marginRight: 10 }} />

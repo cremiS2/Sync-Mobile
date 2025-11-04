@@ -1,16 +1,16 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, Pressable, Modal, Alert } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
-import Skeleton from '../components/Skeleton';
-import FAB from '../components/FAB';
+import Skeleton from '@/components/Skeleton';
+import FAB from '@/components/FAB';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { listInventory, computeInventoryStats, deleteInventoryItem } from '../data/store';
-import SearchBar from '../components/SearchBar';
-import StatCard from '../components/StatCard';
-import SelectField from '../components/SelectField';
-import StatsCarousel from '../components/StatsCarousel';
-import FilterModal from '../components/FilterModal';
+import { listInventory, computeInventoryStats, deleteInventoryItem } from '@/data/store';
+import SearchBar from '@/components/SearchBar';
+import StatCard from '@/components/StatCard';
+import SelectField from '@/components/SelectField';
+import StatsCarousel from '@/components/StatsCarousel';
+import FilterModal from '@/components/FilterModal';
 
 const InventoryItem = ({ item, styles, onPress, colors, onMenu }) => {
   const status = item.status;

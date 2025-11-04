@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput, Pressable, Text, StyleSheet } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function SearchBar({ 
   placeholder = "Buscar...", 

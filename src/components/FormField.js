@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function FormField({ label, placeholder, value, onChangeText, keyboardType = 'default', multiline = false, error }) {
   const { colors } = useTheme();

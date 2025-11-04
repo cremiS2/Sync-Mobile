@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import { useTheme } from '../../contexts/ThemeContext';
-import CustomButton from '../../components/CustomButton';
-import { createDepartment, updateDepartment, deleteDepartment } from '../../services/departmentService';
-import FormField from '../../components/FormField';
-import SelectField from '../../components/SelectField';
+import { useTheme } from '@/contexts/ThemeContext';
+import CustomButton from '@/components/CustomButton';
+import { createDepartment, updateDepartment, deleteDepartment } from '@/services/departmentService';
+import FormField from '@/components/FormField';
+import SelectField from '@/components/SelectField';
 
 export default function DepartamentoFormScreen({ route, navigation }) {
   const { colors } = useTheme();

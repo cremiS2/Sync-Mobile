@@ -13,11 +13,11 @@ import {
   Animated,
   ActivityIndicator,
 } from "react-native";
-import CustomButton from "../components/CustomButton";
+import CustomButton from "@/components/CustomButton";
 import { useNavigation } from "@react-navigation/native";
-import { useTheme } from "../contexts/ThemeContext";
-import { useAuth } from "../contexts/AuthContext";
-import { isValidEmail } from "../utils/helpers";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { isValidEmail } from "@/utils/helpers";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function LoginScreen() {

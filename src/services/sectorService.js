@@ -1,5 +1,5 @@
 import api from './api';
-import { API_ENDPOINTS, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_NUMBER } from '../config/api';
+import { API_ENDPOINTS, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_NUMBER } from '@/config/api';
 
 /**
  * Get all sectors with pagination and filters
