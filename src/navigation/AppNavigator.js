@@ -5,6 +5,7 @@ import LoginScreen from "@/screens/LoginScreen";
 import HomeScreen from "@/screens/HomeScreen";
 import DashboardScreen from '@/screens/DashboardPage';
 import TabNavigator from './TabNavigator';
+import ProtectedRoute from './ProtectedRoute';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import FuncionarioFormScreen from '@/screens/admin/FuncionarioFormScreen';
@@ -44,12 +45,23 @@ export default function AppNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Home">
+        {(props) => (
+          <ProtectedRoute navigation={props.navigation}>
+            <HomeScreen {...props} />
+          </ProtectedRoute>
+        )}
+      </Stack.Screen>
       <Stack.Screen 
-        name="MainTabs" 
-        component={TabNavigator} 
+        name="MainTabs"
         options={{ headerShown: false, title: 'Sistema' }}
-      />
+      >
+        {(props) => (
+          <ProtectedRoute navigation={props.navigation}>
+            <TabNavigator {...props} />
+          </ProtectedRoute>
+        )}
+      </Stack.Screen>
       <Stack.Screen name="FuncionarioCreate" component={FuncionarioFormScreen} options={{ title: 'Novo Funcionário' }} />
       <Stack.Screen name="FuncionarioEdit" component={FuncionarioFormScreen} options={{ title: 'Editar Funcionário' }} />
       <Stack.Screen name="MaquinaCreate" component={MaquinaFormScreen} options={{ title: 'Nova Máquina' }} />

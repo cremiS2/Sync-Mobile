@@ -74,10 +74,6 @@ export default function LandingPage({ navigation }) {
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Comece agora</Text>
         <CustomButton title="Entrar" onPress={() => navigation.navigate('Login')} />
-        <Pressable style={styles.secondaryCta} onPress={() => navigation.navigate('MainTabs')}>
-          <Text style={styles.secondaryCtaText}>Explorar o app</Text>
-          <Ionicons name="arrow-forward" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
-        </Pressable>
         <View style={styles.ctaRow}>
           <Pressable style={styles.ghostBtn} onPress={() => navigation.navigate('Login')}>
             <Text style={styles.ghostBtnText}>Criar conta</Text>

@@ -94,11 +94,25 @@ export const deleteSector = async (id) => {
  */
 const handleError = (error) => {
   if (error.response) {
-    const { status, data } = error.response;
-    console.error('API Error Response:', { status, data });
+    const { status, data, headers, config } = error.response;
+    console.error('API Error Response:', { 
+      status, 
+      data,
+      url: config?.url,
+      method: config?.method,
+      headers: config?.headers,
+      responseHeaders: headers
+    });
     
     // Handle specific error codes
     if (status === 500) {
+      // Log more details for 500 errors
+      console.error('500 Error Details:', {
+        message: data?.message || data?.menssagem || data?.error,
+        timestamp: data?.timestamp,
+        path: data?.path,
+        fullResponse: data
+      });
       return new Error('Erro interno do servidor. Por favor, contate o administrador do sistema.');
     } else if (status === 404) {
       return new Error('Recurso não encontrado.');
