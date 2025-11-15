@@ -29,40 +29,41 @@ export default function DashboardPage() {
    useEffect(() => {
       const fetchDashboardData = async () => {
          try {
+            // Carregar dados em paralelo com tratamento de erro individual (como no web)
             const [employeesRes, machinesRes, departmentsRes, sectorsRes, stockRes] = await Promise.all([
-               getEmployees({ pageSize: 1000 }),
-               getMachines({ pageSize: 1000 }),
-               getDepartments({ pageSize: 1000 }),
-               getSectors({ pageSize: 1000 }),
-               getStock({ pageSize: 1000 })
+               getEmployees({ pageSize: 1000, pageNumber: 0 }).catch(() => ({ content: [] })),
+               getMachines({ pageSize: 1000, pageNumber: 0 }).catch(() => ({ content: [] })),
+               getDepartments({ pageSize: 1000, pageNumber: 0 }).catch(() => ({ content: [] })),
+               getSectors().catch(() => ({ content: [] })), // Sem parâmetros - backend pode não aceitar paginação
+               getStock({ pageSize: 1000, pageNumber: 0 }).catch(() => ({ content: [] }))
             ]);
 
-            const employees = employeesRes.content || employeesRes;
-            const machines = machinesRes.content || machinesRes;
-            const departments = departmentsRes.content || departmentsRes;
-            const sectors = sectorsRes.content || sectorsRes;
-            const stock = stockRes.content || stockRes;
+            const employees = employeesRes.content || employeesRes || [];
+            const machines = machinesRes.content || machinesRes || [];
+            const departments = departmentsRes.content || departmentsRes || [];
+            const sectors = sectorsRes.content || sectorsRes || [];
+            const stock = stockRes.content || stockRes || [];
 
             setDashboardData({
                employees: {
                   total: employees.length,
-                  active: employees.filter(emp => emp.status === 'ATIVO').length
+                  active: employees.filter(emp => emp.status === 'ATIVO' || emp.status === 'ACTIVE').length
                },
                machines: {
                   total: machines.length,
-                  operating: machines.filter(mach => mach.status === 'OPERANDO').length,
-                  maintenance: machines.filter(mach => mach.status === 'MANUTENCAO').length
+                  operating: machines.filter(mach => mach.status === 'OPERANDO' || mach.status === 'OPERATING').length,
+                  maintenance: machines.filter(mach => mach.status === 'MANUTENCAO' || mach.status === 'MAINTENANCE').length
                },
                departments: {
                   total: departments.length,
-                  active: departments.filter(dept => dept.status === 'ATIVO').length
+                  active: departments.filter(dept => dept.status === 'ATIVO' || dept.status === 'ACTIVE').length
                },
                sectors: {
                   total: sectors.length
                },
                stock: {
                   total: stock.length,
-                  available: stock.filter(item => item.status === 'DISPONIVEL').length
+                  available: stock.filter(item => item.status === 'DISPONIVEL' || item.status === 'IN_STOCK').length
                },
                loading: false,
                error: null
@@ -138,6 +139,7 @@ export default function DashboardPage() {
           { icon: 'account-plus-outline', text: `${dashboardData.employees.total} funcionários registrados`, time: 'hoje' },
           { icon: 'cog-outline', text: `${dashboardData.machines.total} máquinas monitoradas`, time: 'hoje' },
           { icon: 'domain', text: `${dashboardData.departments.total} departamentos ativos`, time: 'hoje' },
+          { icon: 'office-building', text: `${dashboardData.sectors.total} setores cadastrados`, time: 'hoje' },
           { icon: 'cube-outline', text: `${dashboardData.stock.available} itens em estoque`, time: 'hoje' },
         ].map((a, i) => (
           <View key={i} style={styles.recentItem}>

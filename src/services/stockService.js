@@ -4,14 +4,14 @@ import { API_ENDPOINTS, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_NUMBER } from '@/config/
 /**
  * Get all stock items with pagination
  * @param {Object} params - Query parameters
- * @param {number} params.pageNumber - Page number (default 1)
+ * @param {number} params.pageNumber - Page number (default 0)
  * @param {number} params.pageSize - Page size (default 10)
  * @returns {Promise<Object>} Paginated stock items
  */
 export const getStock = async (params = {}) => {
   try {
     const queryParams = {
-      'page-number': params.pageNumber ?? 1, // API usa 1 como default
+      'page-number': params.pageNumber ?? DEFAULT_PAGE_NUMBER,
       'page-size': params.pageSize ?? DEFAULT_PAGE_SIZE,
     };
     

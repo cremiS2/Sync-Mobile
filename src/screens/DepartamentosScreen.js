@@ -34,7 +34,7 @@ export default function DepartamentosScreen() {
   const loadDepartments = async () => {
     try {
       setLoading(true);
-      const data = await getDepartments({ pageSize: 100 });
+      const data = await getDepartments({ pageSize: 100, pageNumber: 0 });
       const deptArray = Array.isArray(data) ? data : (data?.content || []);
       setDepartments(deptArray);
     } catch (error) {

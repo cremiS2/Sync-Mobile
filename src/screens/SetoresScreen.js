@@ -7,20 +7,32 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { getSectors } from '@/services/sectorService';
 
-const SetorItem = ({ item, styles, onPress }) => (
-  <Pressable onPress={() => onPress(item)} style={styles.itemContainer}>
-    <View style={styles.rowBetween}>
-      <View style={styles.sectorBadge}>
-        <MaterialCommunityIcons name="office-building" size={18} color={styles.badgeIcon.color} />
+const SetorItem = ({ item, styles, onPress }) => {
+  // employees pode ser número ou array de Employee
+  const employeesCount = Array.isArray(item.employees) 
+    ? item.employees.length 
+    : (typeof item.employees === 'number' ? item.employees : 0);
+  
+  // efficiency pode vir como decimal (0-1) ou porcentagem (0-100)
+  const efficiency = typeof item.efficiency === 'number' 
+    ? (item.efficiency > 1 ? Math.round(item.efficiency) : Math.round(item.efficiency * 100))
+    : 0;
+
+  return (
+    <Pressable onPress={() => onPress(item)} style={styles.itemContainer}>
+      <View style={styles.rowBetween}>
+        <View style={styles.sectorBadge}>
+          <MaterialCommunityIcons name="office-building" size={18} color={styles.badgeIcon.color} />
+        </View>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <Text style={styles.nomeText}>{item.name}</Text>
+          <Text style={styles.infoText}>{employeesCount} funcionários · Eficiência {efficiency}%</Text>
+        </View>
+        <MaterialCommunityIcons name="chevron-right" size={20} color={styles.chevronColor.color} />
       </View>
-      <View style={{ flex: 1, marginLeft: 10 }}>
-        <Text style={styles.nomeText}>{item.name}</Text>
-        <Text style={styles.infoText}>{item.employees} funcionários · Eficiência {item.efficiency}%</Text>
-      </View>
-      <MaterialCommunityIcons name="chevron-right" size={20} color={styles.chevronColor.color} />
-    </View>
-  </Pressable>
-);
+    </Pressable>
+  );
+};
 
 export default function SetoresScreen() {
   const { colors } = useTheme();
@@ -34,7 +46,8 @@ export default function SetoresScreen() {
   const loadSectors = async () => {
     try {
       setLoading(true);
-      const data = await getSectors({ pageSize: 100 });
+      // Tentar sem parâmetros primeiro (o backend pode não aceitar parâmetros de paginação)
+      const data = await getSectors();
       const sectorsArray = Array.isArray(data) ? data : (data?.content || []);
       setSectors(sectorsArray);
     } catch (error) {
@@ -66,9 +79,17 @@ export default function SetoresScreen() {
   }, [sectors, searchText]);
 
   const totalSectors = sectors.length;
-  const totalEmployees = sectors.reduce((acc, s) => acc + (s.employees || 0), 0);
+  const totalEmployees = sectors.reduce((acc, s) => {
+    const count = Array.isArray(s.employees) ? s.employees.length : (typeof s.employees === 'number' ? s.employees : 0);
+    return acc + count;
+  }, 0);
   const avgEfficiency = sectors.length > 0 
-    ? Math.round(sectors.reduce((acc, s) => acc + (s.efficiency || 0), 0) / sectors.length)
+    ? Math.round(sectors.reduce((acc, s) => {
+        const eff = typeof s.efficiency === 'number' 
+          ? (s.efficiency > 1 ? s.efficiency : s.efficiency * 100)
+          : 0;
+        return acc + eff;
+      }, 0) / sectors.length)
     : 0;
 
   return (

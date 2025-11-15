@@ -1,11 +1,11 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, Pressable, Modal, Alert } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import Skeleton from '@/components/Skeleton';
 import FAB from '@/components/FAB';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { listInventory, computeInventoryStats, deleteInventoryItem } from '@/data/store';
+import { getStock, deleteStock } from '@/services/stockService';
 import SearchBar from '@/components/SearchBar';
 import StatCard from '@/components/StatCard';
 import SelectField from '@/components/SelectField';
@@ -52,12 +52,61 @@ const InventoryItem = ({ item, styles, onPress, colors, onMenu }) => {
   );
 };
 
+// Helper function to get inventory status from stock item
+const getInventoryStatus = (item) => {
+  const quantity = Number(item?.quantidade || 0);
+  const minStock = Number(item?.minStock || 0);
+  if (quantity <= 0) return 'Sem estoque';
+  if (quantity <= Math.max(1, minStock * 0.5)) return 'Crítico';
+  if (quantity <= minStock) return 'Atenção';
+  return 'OK';
+};
+
+// Helper function to compute stats from stock items
+const computeInventoryStats = (items) => {
+  let totalAvailable = 0;
+  let totalLow = 0;
+  let totalOut = 0;
+  let totalReserved = 0;
+  let totalValue = 0;
+
+  items.forEach(item => {
+    const quantity = Number(item.quantidade || item.quantity || 0);
+    const reserved = Number(item.reservado || item.reserved || 0);
+    const minStock = Number(item.minStock || 0);
+    const price = Number(item.precoUnitario || item.unitPrice || 0);
+    const available = Math.max(quantity - reserved, 0);
+    
+    totalReserved += reserved;
+    totalAvailable += available;
+    totalValue += available * price;
+    
+    if (quantity <= 0) {
+      totalOut += 1;
+    } else if (quantity <= Math.max(1, minStock * 0.5)) {
+      totalLow += 1;
+    } else if (quantity <= minStock) {
+      totalLow += 1;
+    }
+  });
+
+  return {
+    totalItems: items.length,
+    totalReserved,
+    totalAvailable,
+    totalLow,
+    totalOut,
+    totalValue,
+  };
+};
+
 export default function EstoqueScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState([]);
   const [query, setQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [statusFilter, setStatusFilter] = useState(''); // '', 'OK', 'Atenção', 'Crítico', 'Sem estoque'
@@ -65,44 +114,80 @@ export default function EstoqueScreen() {
   const [menuItem, setMenuItem] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
 
-  React.useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(t);
+  const loadStockItems = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getStock({ pageSize: 1000, pageNumber: 0 });
+      const stockArray = Array.isArray(data) ? data : (data?.content || []);
+      // Map API data to match expected format
+      const mappedItems = stockArray.map(item => ({
+        ...item,
+        // Keep original API fields
+        id: item.id,
+        codigo: item.codigo,
+        nome: item.nome,
+        quantidade: item.quantidade || 0,
+        unidade: item.unidade,
+        precoUnitario: item.precoUnitario || 0,
+        localizacao: item.localizacao,
+        categoria: item.categoria,
+        // Add computed fields for UI compatibility
+        name: item.nome,
+        sku: item.codigo,
+        quantity: item.quantidade || 0,
+        unit: item.unidade,
+        unitPrice: item.precoUnitario || 0,
+        location: item.localizacao,
+        category: item.categoria,
+        reserved: 0, // API não retorna reservado, usar 0
+        status: getInventoryStatus(item),
+      }));
+      setItems(mappedItems);
+    } catch (error) {
+      console.error('Erro ao carregar estoque:', error);
+      Alert.alert('Erro', error.message || 'Não foi possível carregar o estoque');
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const items = listInventory();
-  const stats = computeInventoryStats();
-  const categories = Array.from(new Set(items.map(i => i.category).filter(Boolean)));
+  useEffect(() => {
+    loadStockItems();
+  }, [loadStockItems]);
+
+  const stats = useMemo(() => computeInventoryStats(items), [items]);
+  const categories = useMemo(() => Array.from(new Set(items.map(i => i.category).filter(Boolean))), [items]);
   const normalized = (s) => (s || '').toString().toLowerCase();
   const fmtInt = (n) => new Intl.NumberFormat('pt-BR').format(Number(n || 0));
   const fmtCurrency = (n) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(n || 0));
-  const filteredItems = items.filter(i => {
-    const q = normalized(query);
-    if (!q) return (
-      (!statusFilter || i.status === statusFilter) &&
-      (!categoryFilter || i.category === categoryFilter)
-    );
-    const matchesText = (
-      normalized(i.name).includes(q) ||
-      normalized(i.sku).includes(q) ||
-      normalized(i.location).includes(q) ||
-      normalized(i.category).includes(q)
-    );
-    const matchesFilters = (
-      (!statusFilter || i.status === statusFilter) &&
-      (!categoryFilter || i.category === categoryFilter)
-    );
-    return matchesText && matchesFilters;
-  });
+  
+  const filteredItems = useMemo(() => {
+    return items.filter(i => {
+      const q = normalized(query);
+      if (!q) return (
+        (!statusFilter || i.status === statusFilter) &&
+        (!categoryFilter || i.category === categoryFilter)
+      );
+      const matchesText = (
+        normalized(i.name).includes(q) ||
+        normalized(i.sku).includes(q) ||
+        normalized(i.location).includes(q) ||
+        normalized(i.category).includes(q)
+      );
+      const matchesFilters = (
+        (!statusFilter || i.status === statusFilter) &&
+        (!categoryFilter || i.category === categoryFilter)
+      );
+      return matchesText && matchesFilters;
+    });
+  }, [items, query, statusFilter, categoryFilter]);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setRefreshing(false);
-    }, 900);
-  }, []);
+    await loadStockItems();
+    setRefreshing(false);
+  }, [loadStockItems]);
 
   return (
     <View style={styles.container}>
@@ -173,11 +258,22 @@ export default function EstoqueScreen() {
               <MaterialCommunityIcons name="pencil-outline" size={18} color={colors.text} />
               <Text style={styles.menuItemText}>Editar</Text>
             </Pressable>
-            <Pressable style={styles.menuItem} onPress={() => {
+            <Pressable style={styles.menuItem} onPress={async () => {
               setMenuVisible(false);
               Alert.alert('Excluir', 'Deseja excluir este item?', [
                 { text: 'Cancelar', style: 'cancel' },
-                { text: 'Excluir', style: 'destructive', onPress: () => { deleteInventoryItem(menuItem.id); onRefresh(); } },
+                { 
+                  text: 'Excluir', 
+                  style: 'destructive', 
+                  onPress: async () => {
+                    try {
+                      await deleteStock(menuItem.id);
+                      await loadStockItems();
+                    } catch (error) {
+                      Alert.alert('Erro', error.message || 'Não foi possível excluir o item');
+                    }
+                  }
+                },
               ]);
             }}>
               <MaterialCommunityIcons name="trash-can-outline" size={18} color="#d63031" />

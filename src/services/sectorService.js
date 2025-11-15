@@ -12,11 +12,32 @@ import { API_ENDPOINTS, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_NUMBER } from '@/config/
  */
 export const getSectors = async (params = {}) => {
   try {
-    const queryParams = {
-      'page-number': params.pageNumber ?? DEFAULT_PAGE_NUMBER,
-      'page-size': params.pageSize ?? DEFAULT_PAGE_SIZE,
-    };
+    // Se não há filtros específicos (departmentName ou sectorName), tentar sem parâmetros primeiro
+    // O backend pode não aceitar parâmetros de paginação neste endpoint
+    if (!params.departmentName && !params.sectorName) {
+      console.log('[sectors] Tentando chamada sem parâmetros (sem filtros específicos)');
+      try {
+        const response = await api.get(API_ENDPOINTS.SECTORS);
+        return response.data;
+      } catch (errorWithoutParams) {
+        // Se falhar sem parâmetros e tiver pageSize/pageNumber, tentar com parâmetros
+        if (params.pageSize || params.pageNumber !== undefined) {
+          console.log('[sectors] Falhou sem parâmetros, tentando com parâmetros de paginação');
+          const queryParams = {};
+          if (params.pageNumber !== undefined) queryParams['page-number'] = params.pageNumber;
+          if (params.pageSize !== undefined) queryParams['page-size'] = params.pageSize;
+          const response = await api.get(API_ENDPOINTS.SECTORS, { params: queryParams });
+          return response.data;
+        }
+        throw errorWithoutParams;
+      }
+    }
     
+    // Se tem filtros específicos, construir query params com todos os parâmetros
+    const queryParams = {};
+    
+    if (params.pageNumber !== undefined) queryParams['page-number'] = params.pageNumber;
+    if (params.pageSize !== undefined) queryParams['page-size'] = params.pageSize;
     if (params.departmentName) queryParams['department-name'] = params.departmentName;
     if (params.sectorName) queryParams['sector-name'] = params.sectorName;
     
