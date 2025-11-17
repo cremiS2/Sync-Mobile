@@ -20,20 +20,20 @@ SyncMob é um aplicativo mobile desenvolvido com React Native e Expo que oferece
 ## Estrutura do Projeto
 
 ```
+├── assets/              # Recursos estáticos (imagens, fontes)
 ├── src/
-│   ├── assets/         # Recursos estáticos (imagens, fontes)
-│   ├── components/     # Componentes reutilizáveis
-│   ├── constants/      # Constantes (cores, dimensões)
-│   ├── contexts/       # Contextos React
-│   ├── hooks/          # Hooks personalizados
-│   ├── navigation/     # Configuração de navegação
-│   ├── screens/        # Telas do aplicativo
-│   ├── services/       # Serviços (API, autenticação)
-│   ├── store/          # Gerenciamento de estado
-│   ├── utils/          # Funções utilitárias
-│   └── Main.js         # Componente principal
-├── App.js              # Ponto de entrada do aplicativo
-└── index.js            # Registro do aplicativo
+│   ├── components/      # Componentes reutilizáveis
+│   ├── config/          # Configurações gerais (tema, API, etc.)
+│   ├── constants/       # Constantes (cores, dimensões)
+│   ├── contexts/        # Contextos React
+│   ├── data/            # Dados mockados e fixtures
+│   ├── navigation/      # Configuração de navegação
+│   ├── screens/         # Telas do aplicativo
+│   ├── services/        # Serviços (API, autenticação)
+│   ├── utils/           # Funções utilitárias
+│   └── Main.js          # Componente principal da aplicação
+├── App.js               # Ponto de entrada do aplicativo
+└── index.js             # Registro do aplicativo
 ```
 
 ## Instalação

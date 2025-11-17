@@ -135,7 +135,9 @@ export default function SetoresScreen() {
       ) : (
         <FlatList
           data={filteredSectors}
-          keyExtractor={(item) => String(item.id)}
+          keyExtractor={(item, index) =>
+            item && item.id != null ? String(item.id) : `sector-${index}`
+          }
           renderItem={({ item }) => (
             <SetorItem
               item={item}

@@ -91,7 +91,9 @@ export default function FuncionariosScreen() {
       ) : (
         <FlatList
           data={employees}
-          keyExtractor={(item) => item.id?.toString()}
+          keyExtractor={(item, index) =>
+            item && item.id != null ? String(item.id) : `func-${index}`
+          }
           renderItem={({ item }) => (
             <FuncionarioItem
               item={item}

@@ -15,6 +15,13 @@ const api = axios.create({
 const TOKEN_KEY = '@syncmob_token';
 const TOKEN_EXP_KEY = '@syncmob_token_exp';
 
+// Handler global para erros 401 (não autorizado)
+let unauthorizedHandler = null;
+
+export const setUnauthorizedHandler = (handler) => {
+  unauthorizedHandler = handler;
+};
+
 // Request interceptor to add JWT token
 api.interceptors.request.use(
   async (config) => {
@@ -37,9 +44,19 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid, clear storage
+    const status = error.response?.status;
+    const config = error.config || {};
+
+    if (status === 401 && !config.skipAuthLogout) {
+      // Token expirado ou inválido, limpar storage e notificar AuthContext
       await clearAuthToken();
+      if (typeof unauthorizedHandler === 'function') {
+        try {
+          unauthorizedHandler();
+        } catch (handlerError) {
+          console.error('Error in unauthorizedHandler:', handlerError);
+        }
+      }
     }
     return Promise.reject(error);
   }

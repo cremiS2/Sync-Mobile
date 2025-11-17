@@ -69,18 +69,23 @@ export default function ProfileScreen() {
 
   // Carregar dados do perfil da API
   const loadProfileData = async () => {
+    let userEmail = '';
+    let userName = '';
+
     try {
       setLoading(true);
       console.log('=== CARREGANDO DADOS DO PERFIL ===');
       
-      // Extrair email do token JWT
+      // Extrair dados básicos (email/nome) do token JWT
       const token = await getAuthToken();
-      let userEmail = '';
       
       if (token) {
         try {
           const payload = decodeJWT(token);
-          userEmail = payload.sub || payload.email || '';
+          if (payload) {
+            userEmail = payload.sub || payload.email || '';
+            userName = payload.name || payload.nome || payload.sub || '';
+          }
           console.log('Email do usuário logado:', userEmail);
         } catch (err) {
           console.error('Erro ao decodificar token:', err);
@@ -107,8 +112,9 @@ export default function ProfileScreen() {
       console.log('Funcionário encontrado:', currentEmployee.name || 'Nenhum');
       
       // Preencher dados do perfil
-      const name = currentEmployee.name || user?.name || 'Usuário';
+      const name = currentEmployee.name || userName || user?.name || 'Usuário';
       const email = userEmail || currentEmployee.user?.email || user?.email || 'Não informado';
+      
       const role = getRoleFromEmployee(currentEmployee, currentDepartment);
       
       setProfileData({
@@ -130,10 +136,10 @@ export default function ProfileScreen() {
       
     } catch (error) {
       console.error('Erro ao carregar dados do perfil:', error);
-      // Manter dados padrão em caso de erro
+      // Manter dados padrão em caso de erro, usando o que conseguimos extrair do token
       setProfileData({
-        name: user?.name || 'Usuário',
-        email: user?.email || 'Não informado',
+        name: userName || user?.name || 'Usuário',
+        email: userEmail || user?.email || 'Não informado',
         role: 'Administrador',
       });
     } finally {
@@ -184,11 +190,21 @@ export default function ProfileScreen() {
           text: 'Sair',
           onPress: async () => {
             try {
+              console.log('Logout button pressed, calling logout...');
               await logout();
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Landing' }],
-              });
+
+              const rootNavigation = navigation.getParent();
+              if (rootNavigation) {
+                rootNavigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Login' }],
+                });
+              } else {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Login' }],
+                });
+              }
             } catch (error) {
               console.error('Error during logout:', error);
               Alert.alert('Erro', 'Erro ao fazer logout. Tente novamente.');

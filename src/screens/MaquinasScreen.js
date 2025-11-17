@@ -117,7 +117,9 @@ export default function MaquinasScreen() {
       ) : (
         <FlatList
           data={filteredMachines}
-          keyExtractor={(item) => String(item.id)}
+          keyExtractor={(item, index) =>
+            item && item.id != null ? String(item.id) : `machine-${index}`
+          }
           renderItem={({ item }) => (
             <MaquinaItem
               item={item}

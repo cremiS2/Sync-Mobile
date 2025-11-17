@@ -26,7 +26,9 @@ export default function SelectField({ label, value, onSelect, options = [], plac
           <View style={styles.modalCard}>
             <FlatList
               data={options}
-              keyExtractor={(item) => String(item.value)}
+              keyExtractor={(item, index) =>
+                item && item.value != null ? String(item.value) : `opt-${index}`
+              }
               renderItem={({ item }) => (
                 <Pressable
                   style={styles.option}

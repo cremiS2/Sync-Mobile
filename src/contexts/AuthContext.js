@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { login as apiLogin, logout as apiLogout, signUp as apiSignUp } from '@/services/authService';
-import { isAuthenticated, getAuthToken } from '@/services/api';
+import { isAuthenticated, getAuthToken, setUnauthorizedHandler } from '@/services/api';
 
 const AuthContext = createContext({});
 
@@ -9,8 +9,13 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Check if user is authenticated on mount
+  // Check if user is authenticated on mount e registrar handler global de 401
   useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setUser(null);
+      setIsLoggedIn(false);
+      setLoading(false);
+    });
     checkAuth();
   }, []);
 

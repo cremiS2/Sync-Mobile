@@ -18,7 +18,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { isValidEmail } from "@/utils/helpers";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -135,9 +135,6 @@ export default function LoginScreen() {
                 <Switch value={lembrar} onValueChange={setLembrar} trackColor={{ true: colors.primary }} />
                 <Text style={styles.switchLabel}>Lembrar-me</Text>
               </View>
-              <Pressable onPress={() => Alert.alert("Recuperar senha", "Funcionalidade em breve")}> 
-                <Text style={styles.linkText}>Esqueci a senha</Text>
-              </Pressable>
             </View>
 
             <CustomButton 
@@ -151,30 +148,6 @@ export default function LoginScreen() {
                 <ActivityIndicator size="small" color={colors.primary} />
               </View>
             )}
-
-            <View style={styles.dividerRow}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>ou</Text>
-              <View style={styles.divider} />
-            </View>
-
-            <View style={styles.socialRow}>
-              <Pressable style={[styles.socialButton, { borderColor: colors.border }]} onPress={() => Alert.alert("Google", "Login social em breve")}> 
-                <MaterialCommunityIcons name="google" size={18} color="#DB4437" style={{ marginRight: 8 }} />
-                <Text style={styles.socialText}>Google</Text>
-              </Pressable>
-              <Pressable style={[styles.socialButton, { borderColor: colors.border }]} onPress={() => Alert.alert("Apple", "Login social em breve")}>
-                <MaterialCommunityIcons name="apple" size={18} color={colors.text} style={{ marginRight: 8 }} />
-                <Text style={styles.socialText}>Apple</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.signupRow}>
-              <Text style={styles.subtitle}>Ainda não tem conta? </Text>
-              <Pressable onPress={() => Alert.alert("Cadastro", "Fluxo de cadastro em breve")}> 
-                <Text style={styles.linkAccent}>Criar conta</Text>
-              </Pressable>
-            </View>
           </View>
         </View>
       </ScrollView>
@@ -284,52 +257,5 @@ const createStyles = (COLORS) =>
     linkText: {
       color: COLORS.primary,
       fontWeight: "600",
-    },
-    dividerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginVertical: 12,
-    },
-    divider: {
-      height: 1,
-      flex: 1,
-      backgroundColor: COLORS.border,
-    },
-    dividerText: {
-      marginHorizontal: 10,
-      color: COLORS.secondary,
-    },
-    socialRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-    },
-    socialButton: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 1,
-      borderRadius: 10,
-      height: 46,
-      backgroundColor: COLORS.background,
-      marginRight: 8,
-    },
-    socialText: {
-      color: COLORS.text,
-      fontWeight: "600",
-    },
-    signupRow: {
-      marginTop: 16,
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    subtitle: {
-      color: COLORS.text,
-      opacity: 0.8,
-    },
-    linkAccent: {
-      color: COLORS.primary,
-      fontWeight: "700",
     },
   });

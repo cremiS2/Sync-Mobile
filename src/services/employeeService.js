@@ -24,7 +24,11 @@ export const getEmployees = async (params = {}) => {
     if (params.shift) queryParams['shift'] = params.shift;
     if (params.sectorName) queryParams['sector-name'] = params.sectorName;
     
-    const response = await api.get(API_ENDPOINTS.EMPLOYEES, { params: queryParams });
+    const response = await api.get(API_ENDPOINTS.EMPLOYEES, {
+      params: queryParams,
+      // Permitir que algumas telas (como Perfil) tratem 401 sem derrubar a sessão
+      skipAuthLogout: true,
+    });
     return response.data;
   } catch (error) {
     throw handleError(error);

@@ -15,7 +15,10 @@ export default function ProtectedRoute({ children, navigation }) {
     // Se não estiver autenticado e não estiver carregando, redirecionar para login
     if (!loading && !isLoggedIn) {
       console.warn('User not authenticated, redirecting to Login...');
-      navigation.replace('Login');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
     }
   }, [isLoggedIn, loading, navigation]);
 

@@ -22,7 +22,11 @@ export const getDepartments = async (params = {}) => {
     if (params.statusDepartment) queryParams['status-department'] = params.statusDepartment;
     if (params.departmentBudget) queryParams['department-budget'] = params.departmentBudget;
     
-    const response = await api.get(API_ENDPOINTS.DEPARTMENTS, { params: queryParams });
+    const response = await api.get(API_ENDPOINTS.DEPARTMENTS, {
+      params: queryParams,
+      // Permitir que algumas telas (como Perfil) tratem 401 sem derrubar a sessão
+      skipAuthLogout: true,
+    });
     return response.data;
   } catch (error) {
     throw handleError(error);

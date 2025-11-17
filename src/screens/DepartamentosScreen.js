@@ -111,7 +111,9 @@ export default function DepartamentosScreen() {
       ) : (
         <FlatList
           data={filteredDepartments}
-          keyExtractor={(item) => String(item.id)}
+          keyExtractor={(item, index) =>
+            item && item.id != null ? String(item.id) : `dept-${index}`
+          }
           renderItem={({ item }) => (
             <DepartamentoItem
               item={item}

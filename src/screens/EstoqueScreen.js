@@ -231,7 +231,9 @@ export default function EstoqueScreen() {
       ) : (
         <FlatList
           data={filteredItems}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) =>
+            item && item.id != null ? String(item.id) : `stock-${index}`
+          }
           renderItem={({ item }) => (
             <InventoryItem
               item={item}
