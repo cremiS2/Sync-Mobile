@@ -1,8 +1,30 @@
-import React, { useMemo } from 'react';
-import { NavigationContainer, DefaultTheme, DarkTheme as NavigationDarkTheme } from '@react-navigation/native';
+import React, { useMemo, useRef } from 'react';
+import { NavigationContainer, DefaultTheme, DarkTheme as NavigationDarkTheme, CommonActions } from '@react-navigation/native';
 import AppNavigator from './navigation/AppNavigator';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
+
+// Criar referência global de navegação
+export const navigationRef = React.createRef();
+
+// Função helper para navegação
+export function navigate(name, params) {
+  if (navigationRef.current) {
+    navigationRef.current.navigate(name, params);
+  }
+}
+
+// Função helper para reset
+export function resetNavigation(routes) {
+  if (navigationRef.current) {
+    navigationRef.current.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: routes,
+      })
+    );
+  }
+}
 
 function RootNavigation() {
   const { isDark, colors } = useTheme();
@@ -30,7 +52,7 @@ function RootNavigation() {
   );
 
   return (
-    <NavigationContainer theme={navTheme}>
+    <NavigationContainer ref={navigationRef} theme={navTheme}>
       <AppNavigator />
     </NavigationContainer>
   );

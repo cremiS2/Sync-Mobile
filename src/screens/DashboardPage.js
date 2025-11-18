@@ -91,22 +91,6 @@ export default function DashboardPage() {
         <InfoCard title="Estoque" value={dashboardData.stock.total.toString()} subtitle={`${dashboardData.stock.available} disponível`} color="#d63031" />
       </View>
 
-      {/* Ações rápidas */}
-      <View style={styles.quickRow}>
-        <Pressable style={styles.quickAction} onPress={() => navigation.navigate('FuncionarioCreate')}>
-          <Ionicons name="person-add-outline" size={18} color={colors.primary} />
-          <Text style={styles.quickText}>Novo Funcionário</Text>
-        </Pressable>
-        <Pressable style={styles.quickAction} onPress={() => navigation.navigate('MaquinaCreate')}>
-          <Ionicons name="cog-outline" size={18} color={colors.primary} />
-          <Text style={styles.quickText}>Nova Máquina</Text>
-        </Pressable>
-        <Pressable style={styles.quickAction} onPress={() => navigation.navigate('EstoqueCreate')}>
-          <Ionicons name="cube-outline" size={18} color={colors.primary} />
-          <Text style={styles.quickText}>Novo Item</Text>
-        </Pressable>
-      </View>
-
       {/* Progresso e resumo */}
       <View style={styles.summaryCard}>
         <View style={styles.summaryHeader}>
@@ -176,32 +160,6 @@ const createStyles = (COLORS) =>
       flexDirection: "row",
       justifyContent: "space-between",
       marginBottom: 8,
-    },
-    quickRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginVertical: 12,
-    },
-    quickAction: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: COLORS.cardBg,
-      borderRadius: 12,
-      paddingVertical: 14,
-      marginHorizontal: 4,
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.08,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-    quickText: {
-      marginLeft: 8,
-      fontWeight: '600',
-      color: COLORS.text,
-      fontSize: 13,
     },
     summaryCard: {
       backgroundColor: COLORS.cardBg,

@@ -5,15 +5,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-export default function ProfileEditScreen() {
+export default function ProfileEditScreen({ route }) {
   const { colors } = useTheme();
   const { user, updateUser } = useAuth();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation();
 
+  // Obter dados do perfil passados pela navegação ou do user
+  const profileData = route?.params?.profileData || {};
+  
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
+    name: profileData.name || user?.name || '',
+    email: profileData.email || user?.email || '',
   });
 
   const handleSave = async () => {

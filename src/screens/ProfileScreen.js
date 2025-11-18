@@ -2,11 +2,10 @@ import React, { useMemo, useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { getEmployees } from "@/services/employeeService";
-import { getDepartments } from "@/services/departmentService";
 import { getAuthToken } from "@/services/api";
+import { navigationRef, resetNavigation } from "@/Main";
 
 // Função para decodificar JWT token (compatível com React Native)
 const decodeJWT = (token) => {
@@ -42,11 +41,10 @@ const decodeJWT = (token) => {
       decoded = str;
     }
     
-    return JSON.parse(decoded);
-  } catch (error) {
-    console.error('Erro ao decodificar token:', error);
-    return null;
-  }
+        return JSON.parse(decoded);
+      } catch (error) {
+        return null;
+      }
 };
 
 export default function ProfileScreen() {
@@ -67,55 +65,60 @@ export default function ProfileScreen() {
   ]);
   const [loading, setLoading] = useState(true);
 
-  // Carregar dados do perfil da API
+  // Carregar dados do perfil do token JWT
   const loadProfileData = async () => {
     let userEmail = '';
     let userName = '';
+    let userRole = 'Administrador';
 
     try {
       setLoading(true);
-      console.log('=== CARREGANDO DADOS DO PERFIL ===');
       
-      // Extrair dados básicos (email/nome) do token JWT
-      const token = await getAuthToken();
+      // Tentar obter o token de diferentes fontes
+      let token = null;
       
+      // 1. Tentar do AuthContext primeiro
+      if (user?.token) {
+        token = user.token;
+      } else {
+        // 2. Tentar do AsyncStorage
+        token = await getAuthToken();
+      }
+      
+      // Extrair dados básicos (email/nome/role) do token JWT
       if (token) {
         try {
           const payload = decodeJWT(token);
           if (payload) {
             userEmail = payload.sub || payload.email || '';
             userName = payload.name || payload.nome || payload.sub || '';
+            
+            // Extrair role do token
+            if (payload.scope && payload.scope.length > 0) {
+              const roleMap = {
+                'ADMIN': 'Administrador',
+                'GERENTE': 'Gerente',
+                'OPERADOR': 'Operador'
+              };
+              userRole = roleMap[payload.scope[0]] || payload.scope[0] || 'Administrador';
+            } else if (payload.role) {
+              const roleMap = {
+                'ADMIN': 'Administrador',
+                'GERENTE': 'Gerente',
+                'OPERADOR': 'Operador'
+              };
+              userRole = roleMap[payload.role] || payload.role || 'Administrador';
+            }
           }
-          console.log('Email do usuário logado:', userEmail);
         } catch (err) {
-          console.error('Erro ao decodificar token:', err);
+          // Erro silencioso ao decodificar token
         }
       }
       
-      // Carregar dados dos funcionários e departamentos
-      const [employeesRes, departmentsRes] = await Promise.all([
-        getEmployees({ pageSize: 1000, pageNumber: 0 }).catch(() => ({ content: [] })),
-        getDepartments({ pageSize: 1000, pageNumber: 0 }).catch(() => ({ content: [] }))
-      ]);
-      
-      const employees = employeesRes.content || employeesRes || [];
-      const departments = departmentsRes.content || departmentsRes || [];
-      
-      console.log('Dados carregados para perfil:');
-      console.log('- Funcionários:', employees.length);
-      console.log('- Departamentos:', departments.length);
-      
-      // Buscar o funcionário pelo email do usuário logado
-      const currentEmployee = employees.find(emp => emp.user?.email === userEmail) || employees[0] || {};
-      const currentDepartment = departments.find(d => d.id === currentEmployee.sector?.department?.id) || departments[0] || {};
-      
-      console.log('Funcionário encontrado:', currentEmployee.name || 'Nenhum');
-      
-      // Preencher dados do perfil
-      const name = currentEmployee.name || userName || user?.name || 'Usuário';
-      const email = userEmail || currentEmployee.user?.email || user?.email || 'Não informado';
-      
-      const role = getRoleFromEmployee(currentEmployee, currentDepartment);
+      // Preencher dados do perfil com dados do token
+      const name = userName || user?.name || 'Usuário';
+      const email = userEmail || user?.email || 'Não informado';
+      const role = userRole || 'Administrador';
       
       setProfileData({
         name,
@@ -123,10 +126,10 @@ export default function ProfileScreen() {
         role,
       });
       
-      // Calcular estatísticas reais
-      const daysActive = calculateDaysActive(currentEmployee);
-      const actionsThisMonth = calculateActionsThisMonth(); // Pode ser melhorado depois
-      const managedDepartments = departments.length; // Total de departamentos disponíveis
+      // Calcular estatísticas (valores padrão por enquanto)
+      const daysActive = 30;
+      const actionsThisMonth = 0;
+      const managedDepartments = 0;
       
       setProfileStats([
         { title: "Dias Ativo", value: daysActive.toString(), subtitle: "desde o cadastro" },
@@ -135,8 +138,7 @@ export default function ProfileScreen() {
       ]);
       
     } catch (error) {
-      console.error('Erro ao carregar dados do perfil:', error);
-      // Manter dados padrão em caso de erro, usando o que conseguimos extrair do token
+      // Manter dados padrão em caso de erro
       setProfileData({
         name: userName || user?.name || 'Usuário',
         email: userEmail || user?.email || 'Não informado',
@@ -147,40 +149,22 @@ export default function ProfileScreen() {
     }
   };
 
-  // Função auxiliar para determinar o cargo baseado no setor/departamento
-  const getRoleFromEmployee = (employee, department) => {
-    if (employee.sector?.name) {
-      const sectorName = employee.sector.name;
-      const roles = {
-        'Produção': 'Operador de Produção',
-        'Qualidade': 'Analista de Qualidade',
-        'Manutenção': 'Técnico de Manutenção',
-        'Logística': 'Assistente de Logística',
-        'Administração': 'Assistente Administrativo'
-      };
-      return roles[sectorName] || `Especialista em ${sectorName}`;
-    }
-    return 'Administrador';
-  };
-
-  // Calcular dias ativos (simulado - pode ser melhorado com data de cadastro real)
-  const calculateDaysActive = (employee) => {
-    // Se tiver data de cadastro no employee, calcular a diferença
-    // Por enquanto, retorna um valor simulado baseado no ID
-    return employee.id ? Math.min(365, 30 + (employee.id * 7)) : 30;
-  };
-
-  // Calcular ações realizadas este mês (simulado)
-  const calculateActionsThisMonth = () => {
-    // Pode ser melhorado para buscar ações reais da API
-    return Math.floor(Math.random() * 2000) + 500;
-  };
 
   useEffect(() => {
     loadProfileData();
   }, []);
 
-  const handleLogout = async () => {
+  // Recarregar dados quando voltar da tela de edição
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Recarregar dados quando a tela receber foco (voltar da edição)
+      loadProfileData();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleLogout = () => {
     Alert.alert(
       'Logout',
       'Tem certeza que deseja sair?',
@@ -188,27 +172,57 @@ export default function ProfileScreen() {
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Sair',
-          onPress: async () => {
-            try {
-              console.log('Logout button pressed, calling logout...');
-              await logout();
-
-              const rootNavigation = navigation.getParent();
-              if (rootNavigation) {
-                rootNavigation.reset({
-                  index: 0,
-                  routes: [{ name: 'Login' }],
-                });
-              } else {
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'Login' }],
-                });
+          style: 'destructive',
+          onPress: () => {
+            // Fazer logout primeiro
+            logout().then(() => {
+              // Usar a referência global de navegação com dispatch
+              if (navigationRef?.current) {
+                navigationRef.current.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'Landing' }],
+                  })
+                );
+                return;
               }
-            } catch (error) {
-              console.error('Error during logout:', error);
-              Alert.alert('Erro', 'Erro ao fazer logout. Tente novamente.');
-            }
+
+              // Fallback: tentar pelos parents
+              const tabNav = navigation.getParent();
+              const appNav = tabNav?.getParent();
+              
+              if (appNav?.dispatch) {
+                appNav.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'Landing' }],
+                  })
+                );
+              } else if (tabNav?.dispatch) {
+                tabNav.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'Landing' }],
+                  })
+                );
+              } else {
+                // Último recurso: navigate simples
+                const rootNav = navigation.getParent()?.getParent() || navigation.getParent() || navigation;
+                if (rootNav?.navigate) {
+                  rootNav.navigate('Landing');
+                }
+              }
+            }).catch(() => {
+              // Mesmo se o logout falhar, tentar navegar
+              if (navigationRef?.current) {
+                navigationRef.current.dispatch(
+                  CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'Landing' }],
+                  })
+                );
+              }
+            });
           }
         },
       ]
@@ -232,7 +246,13 @@ export default function ProfileScreen() {
             <Text style={styles.userRole}>{profileData.role}</Text>
             <Text style={styles.userEmail}>{profileData.email || 'Não informado'}</Text>
           </View>
-          <Pressable style={styles.editButton} onPress={() => navigation.navigate('ProfileEdit')}>
+          <Pressable style={styles.editButton} onPress={() => navigation.navigate('ProfileEdit', { 
+            profileData: {
+              name: profileData.name,
+              email: profileData.email,
+              role: profileData.role
+            }
+          })}>
             <MaterialCommunityIcons name="pencil" size={20} color={colors.primary} />
           </Pressable>
         </View>
